@@ -17,8 +17,9 @@ VIDEOADDR equ 0xb8000
     mov esp,0xffff
 %endmacro 
 extern main
-
+global _start
 section .text
+_start:
     updateReg 
     call setup_idt
     call setup_gdt
