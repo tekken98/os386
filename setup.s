@@ -26,7 +26,7 @@ section .text
     xor eax,eax
     call setup_pages
     call disp
-    push main
+    call main
 stop:
     jmp stop
 con:  
