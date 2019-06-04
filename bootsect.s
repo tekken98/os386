@@ -1,6 +1,7 @@
 BITS 16
 INITSEG equ 0x9000
 BOOTSEG equ 0x07c0
+SECTORS equ 7
 
 section .text
 global start
@@ -22,7 +23,7 @@ con:
     mov dx,0x0000
     mov cx,0x0002
     mov bx,0x0200
-    mov ax,0x0200+4
+    mov ax,0x0200+SECTORS
     int 0x13
     jnc ok_load_setup
     mov ax,0x0000
@@ -33,7 +34,7 @@ ok_load_setup:
     cli
     mov di,0
     mov si,0x200
-    mov cx,0x200*2
+    mov cx,0x100 * SECTORS
     mov ax,0
     mov es,ax
     rep movsw
@@ -49,6 +50,33 @@ ok_load_setup:
     mov al,0xdf
     out 0x60,al
     call empty_8042
+
+    mov al,0x11
+    out 0x20,al
+    dw 0x00eb,0x00eb
+    out 0xa0,al
+    dw 0x00eb,0x00eb
+    mov al,0x20
+    out 0x21,al
+    dw 0x00eb,0x00eb
+    mov al,0x28
+    out 0xa1,al
+    dw 0x00eb,0x00eb
+    mov al,0x04
+    out 0x21,al
+    dw 0x00eb,0x00eb
+    mov al,0x02
+    out 0xa1,al
+    dw 0x00eb,0x00eb
+    mov al,0x01
+    out 0x21,al
+    dw 0x00eb,0x00eb
+    out 0xa1,al
+    dw 0x00eb,0x00eb
+    mov al,0xff
+    out 0x21,al
+    dw 0x00eb,0x00eb
+    out 0xa1,al
 
     mov ax,0x1
     lmsw ax
@@ -74,8 +102,8 @@ disp:
 
 section .data
 msg:
-    db 13,10
 msgbegin:
+    db 13,10
     db "Loading system ..."
     db 13,10,13,10
 gdt:

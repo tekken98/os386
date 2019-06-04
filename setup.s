@@ -16,7 +16,8 @@ VIDEOADDR equ 0xb8000
     mov ss,ax
     mov esp,0xffff
 %endmacro 
-extern main
+extern mmain
+extern printk
 global _start
 section .text
 _start:
@@ -27,7 +28,7 @@ _start:
     xor eax,eax
     call setup_pages
     call disp
-    call main
+    call mmain
 stop:
     jmp stop
 con:  
@@ -109,9 +110,26 @@ nextpg:
 
 
 ignore_int:
+    push ebx
+    push eax
+    mov eax,[esp+12]
+    mov ebx,[esp+8]
+    pusha
+    push ebx
+    push eax
+    push initmsg
+    call printk
+    ;mov al,0x20
+    ;out 0x20,al
+    pop eax
+    pop eax
+    pop ebx
+    popa
+    add esp,8
     iret
 
 msg db 'good'
+initmsg db "cs=%x,eip=%x",0xa,0x0
 idt_descr:
     dw 256*8-1
     dd IDTTABLE
