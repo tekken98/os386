@@ -126,5 +126,7 @@ void printk(const char * str,...){
 }
 void mmain()
 {
+    printk("In main!\n");
+    printk("How a day!\n");
     trap_init();
 }

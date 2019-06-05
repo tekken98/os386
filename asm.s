@@ -3,7 +3,9 @@ extern do_double_fault,do_coprocessor_segment_overrun
 extern do_invalid_TSS,do_segment_not_present,do_stack_segment
 extern do_general_protection,do_coprocessor_error,do_irq13,do_reserved
 extern printk
-global divide_error
+global divide_error,debug,nmi,int3,overflow,bounds,invalid_op
+global device_not_available,double_fault,coprocessor_segment_overrun
+global invalid_TSS,segment_not_present,stack_segment,general_protection,page_fault,reserved,coprocessor_error,irq13,parallel_interrupt
 ;int0
 divide_error:
     push do_divide_error
@@ -45,6 +47,7 @@ nmi:
     push do_nmi
     jmp no_error_code
 ;int3 
+int3:
     push do_int3
     jmp no_error_code
 ;int4
@@ -119,3 +122,8 @@ general_protection:
     push do_general_protection
     jmp error_code
 msg:    db 'eax=%x',0xa,0x0
+device_not_available:
+page_fault:
+coprocessor_error:
+timer_interrupt:
+parallel_interrupt:
