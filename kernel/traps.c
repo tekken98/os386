@@ -1,4 +1,13 @@
-void printk(const char*,...);
+#include "../include/io.h"
+#define HZ 100
+#define LATCH (1193180/HZ)
+long volatile jiffies =0;
+
+extern void printk(const char*,...);
+extern void timer_interrupt();
+extern void keyboard_interrupt();
+
+
 void divide_error(void);
 void debug(void);
 void nmi(void);
@@ -66,6 +75,9 @@ void do_coprocessor_error(long esp,long error_code){
 void do_reserved(long esp,long error_code){
     printk("do_reserved\n");
 }
+void do_timer(){
+    //printk("do_timer %d \n",jiffies);
+}
 #pragma align 8
 void set_trap_gate(int num, void* fun){
     asm("    shl $3, %%ecx\t\n"
@@ -81,9 +93,21 @@ void set_trap_gate(int num, void* fun){
             "mov %%eax,(%%ebx) \t\n"
             ::"c"(num),"a"(fun):"ebx","edx");
 }
-void sti(){
-    asm("sti");
+void set_intr_gate(int num,void *fun){
+    asm("    shl $3, %%ecx\t\n"
+            "mov $0x10,%%bx \t\n"
+            "mov %%bx,%%ds \t\n"
+            "mov $0x90000,%%ebx \t\n"
+            "mov $0x080000,%%edx \t\n"
+            "mov %%ax,%%dx \t\n"
+            "mov $0x8f00,%%ax \t\n"
+            "add %%ecx,%%ebx \t\n"
+            "mov %%edx,(%%ebx) \t\n"
+            "add $0x4 , %%ebx \t\n"
+            "mov %%eax,(%%ebx) \t\n"
+            ::"c"(num),"a"(fun):"ebx","edx");
 }
+
 void trap_init(void){
     //for (int i = 0;i < 256;i++)
     set_trap_gate(0,divide_error);
@@ -106,16 +130,21 @@ void trap_init(void){
     for(int i = 17;i<48;i++)
         set_trap_gate(i,reserved);
     set_trap_gate(45,irq13);
-    /*asm("in $0x21,%%ax \t\n"
-            "and $0xfb,%%al\t\n"
-            "out %%al,0x21\t\n"
-            "in $0xa1\t\n"
-            "and $xdf,%%al\t\n"
-            "out %%al,$0xa1 \t\n");
-            */
-    //outb_p(inb_p(0x21)&0xfb,0x21);
-    //outb(inb_p(0xa1)&0xdf,0xa1);
     set_trap_gate(39,parallel_interrupt);
+
+    outb_p(inb_p(0x21)&0xfb,0x21);
+    outb(inb_p(0xa1)&0xdf,0xa1);
+    outb_p(0x36,0x43);
+    outb_p(LATCH & 0xff,0x40);
+    outb(LATCH >> 8 , 0x40);
+    set_intr_gate(0x20,timer_interrupt);
+    outb(inb_p(0x21)&~0x01,0x21);
+    
+    unsigned char a;
+    set_intr_gate(0x21,keyboard_interrupt);
+    outb_p(inb_p(0x21)&0xfd,0x21);
+    a = inb_p(0x61);
+    outb_p(a|0x80,0x61);
+    outb(a,0x61);
     sti();
-    int a = 1 / 0;
 }

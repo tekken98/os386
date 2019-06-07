@@ -26,29 +26,31 @@ start:
 con:
     mov ax,cs
     mov ds,ax
-    mov dx,0x0000
-    mov cx,0x0002
-    mov bx,0x0200
-    mov ax,0x0200+SETUPLEN
+    mov dx,0x0000 ;dh = head, dl=driver : 7en bit = 1 is hard disk 7en bit = 0 is floppy
+    mov cx,0x0002 ;ch = syclinder(low byte), cl = begin sector(0-5),cyclinder high bits(6-7)
+    mov bx,0x0200 ;es:bx -> read buffer
+    mov ax,0x0200+SETUPLEN  ;ah=0x2 read al=sectors
     int 0x13
     jnc ok_load_setup
+    mov dx,0x0000
     mov ax,0x0000
-    int 0x13 
+    int 0x13  ;reset disk
     jmp  con
 ok_load_setup:
 ; load setup to 0x90200
     mov dl,0x0
-    mov ax,0x0800
-    int 0x13
-    mov ch,0x0
+    mov ax,0x0800 ; ah = 0x08  dl = driver  dh = max headers
+    int 0x13 ; get disk driver parameters   es:di  -> flppy disk parameters
+    mov ch,0x0  ; ch = max cylinder low byte cl = max sectors per cylinder (0-5), max cylinder hight 2 bits(6-7)
 stp: jc stp
-    cmp cx, 0
+    cmp cx, 0  
     jnz ok
+    jmp stp
     mov cx,18
 ok:
-    mov [sectors],cx
+    mov [sectors],cx  ; sectors of cylinder
     mov ax,SYSSEG
-    mov es,ax
+    mov es,ax   ; es = system segment address
     call read_it
     call kill_motor
     call disp

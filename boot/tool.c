@@ -21,7 +21,7 @@ int main(){
     unsigned int setup_size = ftell(setup);
     fseek(setup,0,SEEK_SET);
     printf("setup size is 0x%x bytes need %d sectors \n", setup_size,(setup_size + 511) >> 9 );
-    FILE *system = fopen("system.o","r");
+    FILE *system = fopen("../system.o","r");
     assert(system != NULL);
     fseek(system,0,SEEK_END);
     unsigned int system_size = ftell(system);
