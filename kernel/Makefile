@@ -12,4 +12,5 @@ kernel.o: $(OBJS)
 	#@objcopy -O binary -j .data  -j .text -j .rodata -j .bss bin.o system.o
 clean:
 	-@rm -f *.o *.lst
+	(cd chr_drv/;make clean)
 

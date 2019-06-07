@@ -1,60 +1,84 @@
 #include <stdarg.h>
 #include "../include/console.h"
+#include "../include/string.h"
+
 char buff [1024]={0};
 static char alpha[] = "0123456789ABCDEF";
-unsigned int toString(char *buf,int d, unsigned int radical){
+unsigned int toString(char *buf,int d, unsigned int radical,char fill,
+        unsigned short count){
     char digit[16];
+    char *p = buf;
     int i = 0;
     int n;
     while ( n = d % radical, d = d / radical){
        digit[i++] = n;
     }
     digit[i] = n;
+    for (int j = i; j < count - 1;j++)
+    {
+        *p++ = fill;
+    }
+
     for (int j = 0; j <= i; j++)
-        buf[j] = alpha[digit[i-j]];
-    return i + 1;
+        p[j] = alpha[digit[i-j]];
+    return   count > i + 1 ? count:i+1;
 }
-unsigned int toStringInt(char *buf,unsigned int d){
-    return toString(buf,d,10);
+unsigned int toStringInt(char *buf,unsigned int d,char fill,
+        unsigned short count){
+    return toString(buf,d,10,fill,count);
 }
-unsigned int toStringHex(char * buf,unsigned  int d){
-    return toString(buf,d,16);
+unsigned int toStringHex(char * buf,unsigned  int d,char fill,
+        unsigned short count){
+    return toString(buf,d,16,fill,count);
 }
 void mvsprintf(char * buf, const char * fmt, va_list va){
     char c;
     int flag=0;
     int i = 0;
+    unsigned int d;
+    char *s;
+    char ch;
+    char fill='0';
+    unsigned short count=0;
     while(c = *fmt++){
         if ( c!='%'){
                 buf[i++] = c;
                 continue;
         } 
+    con:
         c = *fmt++;
-        unsigned int d;
-        char *s;
-        char ch;
         switch(c){
             case 's':
                 s = va_arg(va,char*);
-                while(buff[i++] = *s++)
+                while(buf[i++] = *s++)
                     ;
                 break;
             case 'd':
                 d = va_arg(va,unsigned int);
-                d = toStringHex(&buf[i],d);
+                d = toStringHex(&buf[i],d,fill,count);
                 i += d ;
+                fill='0';
+                count=0;
                 break;
             case 'x':
                 d = va_arg(va,int);
-                buf[i++] = '0';
-                buf[i++] = 'X';
-                d = toStringHex(&buf[i],d);
+                d = toStringHex(&buf[i],d,fill,count);
                 i += d ;
+                fill='0';
+                count=0;
                 break;
             case 'c':
                 d  = va_arg(va,unsigned int);
                 buf[i++]=(unsigned char)d;
                 break;
+            case '0':
+                fill = '0';
+                count = (unsigned short)((*fmt++) - '0');
+                while ( '0' <= *fmt  && *fmt <= '9'){
+                    count = count * 10 +  ((unsigned short)(*fmt) - '0');
+                    fmt++;
+                }
+                goto con;
             default:
                 break;
         }
