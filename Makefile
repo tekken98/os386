@@ -5,7 +5,7 @@ all: system
 	(cd boot;make)
 	@virtualbox --startvm dos 
 	#--debug-command-line
-system: boot/header.o init/main.o kernel.o $(DRIVERS)
+system: chr_drv boot/header.o init/main.o kernel.o 
 	ld -m elf_i386 boot/header.o init/main.o kernel/kernel.o  \
 	$(DRIVERS) --entry=_start -Ttext=0 -o bin.o
 	@# ld -m emulation so nice :-?
@@ -16,7 +16,7 @@ init/main.o:init/main.c
 	 gcc -m32 -c $< -o $@  $(FLAGS) 
 kernel.o:
 	(cd kernel;make)
-kernel/chr_drv/chr_drv.a:
+chr_drv:
 	(cd kernel/chr_drv;make)
 clean:
 	-@rm -rf *.o *.lst

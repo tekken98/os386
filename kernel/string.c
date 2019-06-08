@@ -1,17 +1,18 @@
 #include <stdarg.h>
+#include "../include/types.h"
 #include "../include/console.h"
 #include "../include/string.h"
-
+void writeWithReturn(char * );
 char buff [1024]={0};
 static char alpha[] = "0123456789ABCDEF";
-unsigned int toString(char *buf,int d, unsigned int radical,char fill,
-        unsigned short count){
+uint toString(char *buf,int d, uint radical,char fill,
+        ushort count){
     char digit[16];
     char *p = buf;
     int i = 0;
     int n;
     while ( n = d % radical, d = d / radical){
-       digit[i++] = n;
+        digit[i++] = n;
     }
     digit[i] = n;
     for (int j = i; j < count - 1;j++)
@@ -21,13 +22,14 @@ unsigned int toString(char *buf,int d, unsigned int radical,char fill,
 
     for (int j = 0; j <= i; j++)
         p[j] = alpha[digit[i-j]];
-    return   count > i + 1 ? count:i+1;
+    //return   count > i + 1 ? count:i+1;
+    return   max(count,i+1);
 }
-unsigned int toStringInt(char *buf,unsigned int d,char fill,
+uint toStringInt(char *buf,uint d,char fill,
         unsigned short count){
     return toString(buf,d,10,fill,count);
 }
-unsigned int toStringHex(char * buf,unsigned  int d,char fill,
+uint toStringHex(char * buf,uint d,char fill,
         unsigned short count){
     return toString(buf,d,16,fill,count);
 }
@@ -35,17 +37,17 @@ void mvsprintf(char * buf, const char * fmt, va_list va){
     char c;
     int flag=0;
     int i = 0;
-    unsigned int d;
+    uint d;
     char *s;
     char ch;
     char fill='0';
-    unsigned short count=0;
+    ushort count=0;
     while(c = *fmt++){
         if ( c!='%'){
-                buf[i++] = c;
-                continue;
+            buf[i++] = c;
+            continue;
         } 
-    con:
+con:
         c = *fmt++;
         switch(c){
             case 's':
@@ -55,12 +57,13 @@ void mvsprintf(char * buf, const char * fmt, va_list va){
                 break;
             case 'd':
                 d = va_arg(va,unsigned int);
-                d = toStringHex(&buf[i],d,fill,count);
+                d = toStringInt(&buf[i],d,fill,count);
                 i += d ;
                 fill='0';
                 count=0;
                 break;
             case 'x':
+x:
                 d = va_arg(va,int);
                 d = toStringHex(&buf[i],d,fill,count);
                 i += d ;
@@ -79,6 +82,12 @@ void mvsprintf(char * buf, const char * fmt, va_list va){
                     fmt++;
                 }
                 goto con;
+            case 'p':
+                fill='0';
+                count = 8;
+                buf[i++]='0';
+                buf[i++]='x';
+                goto x;
             default:
                 break;
         }
@@ -91,5 +100,5 @@ void printk(const char * str,...){
     va_start(va,str);
     mvsprintf(buff,str,va);
     va_end(va);
-    writePos(buff);
+    writeWithReturn(buff);
 }

@@ -28,7 +28,7 @@ int main(){
     fseek(system,0,SEEK_SET);
     printf("system size is 0x%x bytes need %d sectors \n", system_size,(system_size + 511) >> 9 );
 
-    unsigned int sectors =  ((system_size + 511) >> 9) + ((setup_size + 511 ) >> 9)  + ((511 + boot_size) >> 9); 
+    unsigned int sectors =  ((system_size + 511) >> 9) + (4)  + ((511 + boot_size) >> 9); 
     printf("total need is 0x%0x bytes  %d sectors \n", sectors << 9, sectors);
     char * buff = malloc(floppy_size);
     assert(buff != NULL);

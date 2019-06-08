@@ -2,6 +2,7 @@ BITS 32
 global keyboard_interrupt
 extern printk
 extern backspace
+extern do_tty_interrupt
 keyboard_interrupt:
     push edx
     push ebx
@@ -25,7 +26,7 @@ keyboard_interrupt:
     mov cl,[keymap+eax]
     push ecx
     push key
-    call printk
+    ;call printk
     ;call key_table + eax * 4
     add esp,8
 up:
@@ -44,8 +45,8 @@ j6:  and al,0x7f
     out 0x61,al
     mov al,0x20
     out 0x20,al
-    push 0
-    ;call do_tty_interrupt
+    push ecx
+    call do_tty_interrupt
     add esp,4
     pop es
     pop ds

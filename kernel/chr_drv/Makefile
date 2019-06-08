@@ -6,6 +6,5 @@ FLAGS=-Xassembler --no-pad-sections -Xassembler -R
 OBJS=keyboard.o console.o
 chr_drv.a:$(OBJS)
 	ar rcs --target elf32-i386 chr_drv.a $(OBJS)
-console.s console.o:console.c ../../io.h
 clean:
-	rm -rf *.o
+	rm -rf *.o *.a

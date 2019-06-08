@@ -1,4 +1,5 @@
 #include "../include/io.h"
+#include "../include/types.h"
 #define HZ 100
 #define LATCH (1193180/HZ)
 long volatile jiffies =0;
@@ -6,6 +7,7 @@ long volatile jiffies =0;
 extern void printk(const char*,...);
 extern void timer_interrupt();
 extern void keyboard_interrupt();
+extern uchar tty_get_char();
 
 
 void divide_error(void);
@@ -76,7 +78,7 @@ void do_reserved(long esp,long error_code){
     printk("do_reserved\n");
 }
 void do_timer(){
-    //printk("do_timer %d \n",jiffies);
+    printk("%c",tty_get_char());
 }
 #pragma align 8
 void set_trap_gate(int num, void* fun){

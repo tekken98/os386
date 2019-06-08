@@ -1,22 +1,42 @@
-#include "string.h"
-#include "../../io.h"
+#include "../../include/string.h"
+#include "../../include/io.h"
+#include "../../include/tty.h"
 const int VIDEOADDR=0xb8000;
 const int VIDEOWIDTH=80;
 const int VIDEOHEIGHT=24;
 const int video_port_val = 0x3d5;
 const int video_port_reg= 0x3d4;
 const int video_mem_start=0xb8000;
-
 int current_row = 0;
 int current_col = 0;
+tty_queue tty_queue_buff = {0,0,0,{0}};
 void writeScreen(const char * begin, int len );
 void setCursor(void);
 
+void tty_put_char(uchar c){
+   tty_queue * p = &tty_queue_buff;
+   if (((p->head+1) & (TTY_BUF_SIZE-1)) != p->tail){
+       p->buf[p->head++] = c;
+       p->head &= (TTY_BUF_SIZE - 1);
+   }
+}
+uchar tty_get_char(){
+   uchar c=0x0;
+   tty_queue * p = &tty_queue_buff;
+   if (p->head != p->tail){
+       c  = p->buf[p->tail++];
+       p->tail &= (TTY_BUF_SIZE - 1);
+    }
+   return c;
+}
+void do_tty_interrupt(uint a){
+    tty_put_char((uchar)a);
+}
 int getPos(){
        return current_row * VIDEOWIDTH * 2 + current_col * 2 + VIDEOADDR;
 }
 
-void writePos(const char * msg ){
+void writeWithReturn(const char * msg ){
     int c;
     const char * p = msg;
     const char * e;
@@ -77,7 +97,7 @@ void backspace(){
 void write(int row,int col , const char * str){
     current_row = row;
     current_col = col;
-    writePos(str);
+    writeWithReturn(str);
 }
 
 
