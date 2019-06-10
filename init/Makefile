@@ -1,4 +1,4 @@
 main.o:main.c
-	 gcc -m32 -c $< -o $@  $(FLAGS) 
+	@gcc -m32 -c $< -o $@  $(CFLAGS) $(INCLUDE)
 clean:
-	rm *.o
+	-@rm -rf *.o

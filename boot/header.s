@@ -14,7 +14,7 @@ VIDEOADDR equ 0xb8000
     mov fs,ax
     mov gs,ax
     mov ss,ax
-    mov esp,0xffff
+    mov esp,0x8ffff
 %endmacro 
 extern mmain
 extern printk
@@ -33,6 +33,7 @@ _start:
     call setup_pages
     call mmain
 stop:
+    hlt
     jmp stop
 
 disp:
@@ -134,7 +135,9 @@ gdt_descr:
     dd GDTTABLE
 gdt:
     dq 0x0000000000000000
-    dq 0x00c09a0000001fff ; 32M
-    dq 0x00c0920000001fff ; 32M
+    dq 0x00cf9a0000001fff ; 32M 0x8 _cs  0x00c09a0000001fff  user define bits
+    dq 0x00cf920000001fff ; 32M 0x10 _ds
+    dq 0x00cffa0000001fff ; 32M 0x18 user_cs
+    dq 0x00cff20000001fff ; 32M 0x20 user_ds
     dq 0x0000000000000000
 

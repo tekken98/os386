@@ -1,10 +1,20 @@
 #include <stdarg.h>
-#include "../include/types.h"
-#include "../include/console.h"
-#include "../include/string.h"
+#include "types.h"
+#include "console.h"
+#include "vstring.h"
 void writeWithReturn(char * );
 char buff [1024]={0};
 static char alpha[] = "0123456789ABCDEF";
+void mmemcpy(void* dst, void* src,uint len){
+    asm(
+            "mov %%ecx,%%ebx \t \n"
+            "and 0xf,%%ebx \t \n"
+            "shr $02,%%cx \t\n"
+            "rep movsl \t\n"
+            "mov %%ebx,%%ecx \t\n"
+            "rep movsb \t\n"
+            ::"c"(len),"S"(src),"D"(dst));
+}
 uint toString(char *buf,int d, uint radical,char fill,
         ushort count){
     char digit[16];
@@ -54,6 +64,7 @@ con:
                 s = va_arg(va,char*);
                 while(buf[i++] = *s++)
                     ;
+                i--;
                 break;
             case 'd':
                 d = va_arg(va,unsigned int);

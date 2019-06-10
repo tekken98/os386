@@ -1,8 +1,7 @@
-FLAGS=-Xassembler --no-pad-sections -Xassembler -R
 img: floppy.img tool
-	./tool
+	@./tool
 floppy.img: bootsect.o setup.o
-	@dd if=/dev/zero of=floppy.img bs=1024 count=1440
+	@dd if=/dev/zero of=floppy.img bs=1024 count=1440 >/dev/null
 bootsect.o:bootsect.s
 	@nasm  $< -l $@.lst -o $@
 setup.o:setup.s

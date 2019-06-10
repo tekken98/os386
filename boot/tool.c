@@ -7,7 +7,7 @@ int main(){
     assert(p != NULL);
     fseek(p,0,SEEK_END);
     unsigned int boot_size = ftell(p);
-    printf("bootsect size is %d\n",boot_size);
+    //printf("bootsect size is %d\n",boot_size);
     ret = fseek(p,0,SEEK_SET);
 
     FILE *op = fopen("floppy.img","r");

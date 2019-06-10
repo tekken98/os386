@@ -1,8 +1,9 @@
 BITS 32
 section .text
-global timer_interrupt
+global timer_interrupt,system_call
 extern do_timer
 extern jiffies
+extern do_sys_call
 timer_interrupt:
     push ds
     push es
@@ -34,5 +35,26 @@ ret_from_sys_call:
     pop es
     pop ds
     iret
-
-
+align 2
+system_call:
+    push ds
+    push es
+    push fs
+    push edx
+    push ecx
+    push ebx
+    mov edx,0x10
+    mov ds,dx
+    mov es,dx
+    mov dx,0x20
+    mov fs,dx
+    push eax
+    call do_sys_call
+    add esp,4
+    pop ebx
+    pop ecx
+    pop edx
+    pop fs
+    pop es
+    pop ds
+    iret
