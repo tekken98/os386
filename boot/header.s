@@ -125,7 +125,7 @@ ignore_int:
     add esp,8
     iret
 
-msg db 'This is in the head!'
+msg db 'head!',0xa,0x0
 initmsg db "cs=%x,eip=%x",0xa,0x0
 idt_descr:
     dw 256*8-1

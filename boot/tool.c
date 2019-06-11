@@ -29,7 +29,7 @@ int main(){
     printf("system size is 0x%x bytes need %d sectors \n", system_size,(system_size + 511) >> 9 );
 
     unsigned int sectors =  ((system_size + 511) >> 9) + (4)  + ((511 + boot_size) >> 9); 
-    printf("total need is 0x%0x bytes  %d sectors \n", sectors << 9, sectors);
+    printf("total need is %d  0x%0x bytes  %d sectors \n", sectors << 9, sectors <<9 , sectors);
     char * buff = malloc(floppy_size);
     assert(buff != NULL);
     fread(buff,1,floppy_size,op);

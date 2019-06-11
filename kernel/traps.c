@@ -1,19 +1,17 @@
-#include "../include/io.h"
-#include "../include/types.h"
+#include "types.h"
+#include "io.h"
 #include "processor.h"
+#include "vstring.h"
 #define HZ 100
 #define LATCH (1193180/HZ)
 long volatile jiffies =0;
 
-extern void timer_interrupt();
-extern void keyboard_interrupt();
-extern uchar tty_get_char();
-extern void system_call();
-
-extern struct task_struct  ** task;
-
-
+void timer_interrupt();
+void keyboard_interrupt();
+uchar tty_get_char();
+void system_call();
 void divide_error(void);
+extern struct task_struct  * task;
 void debug(void);
 void nmi(void);
 void int3(void);
@@ -92,7 +90,7 @@ void switch_to(struct task_struct * from, struct task_struct * to){
             "1: \t\n"
             "pop %%ebp \t\n"
             "popf \t\n" 
-            ::"a"(&(from->esp)),"d"(&(to->esp)));
+            ::"a"(&(from->esp)),"d"(&(to->esp)):);
 
 }
 void do_timer(){
@@ -100,9 +98,8 @@ void do_timer(){
     struct task_struct *to;
     uint time = from->times++;
     uint min=0;
-    
     for (int i = 0;i < 10; i++){
-            to = *(&task+i);
+            to = *(&task+i); // task[i] need  *task[]; declare
             if (to && to->running){
                 if (to->times < time)
                     min = i;
@@ -118,8 +115,11 @@ void do_timer(){
 void do_sys_call(uint n){
     printk("system call %d \n",n);
 }
-#pragma align 8
-void set_gate(int num, void* fun,uint type,uint dpl){
+void set_gate(uint num, void* fun,uint type,uint dpl){
+    if (fun == 0x0){
+        printk("int %d \n",num);
+        return;
+    }
     ushort i = (0x8000 + (dpl << 13) + (type << 8));
     asm("    shl $3, %%ecx\t\n"
             "mov $0x10,%%bx \t\n"
@@ -135,17 +135,20 @@ void set_gate(int num, void* fun,uint type,uint dpl){
             ::"o" (i), "c"(num),"a"(fun):"ebx","edx");
 }
 
-void set_trap_gate(int num, void* fun){
+void set_trap_gate(uint num, void* fun){
     set_gate(num,fun,15,0);
 }
-void set_intr_gate(int num,void *fun){
+void set_intr_gate(uint num,void *fun){
     set_gate(num,fun,14,0);
 }
-void set_sys_gate(int n,void *fun){
+void set_sys_gate(uint n,void *fun){
     set_gate(n,fun,15,3);
 }
+void __stack_chk_fail(){
+};
 void trap_init(void){
     //for (int i = 0;i < 256;i++)
+     //   set_trap_gate(i,divide_error);
     set_trap_gate(0,divide_error);
     set_trap_gate(1,debug);
     set_trap_gate(2,nmi);
@@ -184,6 +187,7 @@ void trap_init(void){
     outb(a,0x61);
 // system_call interrupt
     set_sys_gate(0x80,system_call);
-
     sti();
+    //int b = 3 / 0;
+   // printk("call %d",b);
 }

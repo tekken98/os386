@@ -1,7 +1,6 @@
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
 #include <m.h>
-#include "vstring.h"
 #define IO_BITMAP_SIZE 16
 
 struct task_struct
@@ -9,10 +8,10 @@ struct task_struct
     volatile long state;
     ulong esp;
     ulong ss;
-    char name[64];
+    char name[16];
     ulong running;
     ulong times;
-    ulong pid;
+    ulong pid; //process id
 };
 #define INIT_TASK \
     {  \
@@ -45,7 +44,7 @@ struct tss_struct{
         sizeof(init_stack) + (long)&init_stack,\
         __KERNEL_DS,0,\
         0,0,0,0,0,0,\
-        0,//cr3\
+        0,\
         0,0,\
         0,0,0,0,\
         0,0,0,0,\

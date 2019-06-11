@@ -4,7 +4,7 @@
 #include "vstring.h"
 void writeWithReturn(char * );
 char buff [1024]={0};
-static char alpha[] = "0123456789ABCDEF";
+char alpha[] = "0123456789ABCDEF";
 void mmemcpy(void* dst, void* src,uint len){
     asm(
             "mov %%ecx,%%ebx \t \n"
@@ -13,11 +13,13 @@ void mmemcpy(void* dst, void* src,uint len){
             "rep movsl \t\n"
             "mov %%ebx,%%ecx \t\n"
             "rep movsb \t\n"
-            ::"c"(len),"S"(src),"D"(dst));
+            ::"c"(len),"S"(src),"D"(dst):"ebx");
+    //printk("%p,%p,%d\n",dst,src,len);
+    return ;
 }
 uint toString(char *buf,int d, uint radical,char fill,
         ushort count){
-    char digit[16];
+    uchar digit[16];
     char *p = buf;
     int i = 0;
     int n;
@@ -45,14 +47,12 @@ uint toStringHex(char * buf,uint d,char fill,
 }
 void mvsprintf(char * buf, const char * fmt, va_list va){
     char c;
-    int flag=0;
     int i = 0;
     uint d;
     char *s;
-    char ch;
     char fill='0';
     ushort count=0;
-    while(c = *fmt++){
+    while((c = *fmt++)){
         if ( c!='%'){
             buf[i++] = c;
             continue;
@@ -62,7 +62,7 @@ con:
         switch(c){
             case 's':
                 s = va_arg(va,char*);
-                while(buf[i++] = *s++)
+                while((buf[i++] = *s++))
                     ;
                 i--;
                 break;

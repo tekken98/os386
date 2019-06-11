@@ -30,6 +30,7 @@ uchar tty_get_char(){
    return c;
 }
 void do_tty_interrupt(uint a){
+    printk("tty_interrupt\n");
     tty_put_char((uchar)a);
 }
 int getPos(){
@@ -41,7 +42,7 @@ void writeWithReturn(const char * msg ){
     const char * p = msg;
     const char * e;
     int flag=0;
-    while (c = *msg++) {
+    while ((c = *msg++)) {
         if (c == '\n'){
             if (flag==1){
                 current_row++;
@@ -61,9 +62,8 @@ void writeWithReturn(const char * msg ){
         writeScreen(p,len);
 }
 void writeScreen(const char * begin, int len ){
-       int i = 0;
        if (len == 0) return;
-       if (current_row > VIDEOHEIGHT / 2){
+       if (current_row > VIDEOHEIGHT){
            current_row = 0;
            current_col = 0;
        }

@@ -1,7 +1,6 @@
-img: floppy.img tool
-	@./tool
-floppy.img: bootsect.o setup.o
+floppy.img: bootsect.o setup.o ../system.o tool
 	@dd if=/dev/zero of=floppy.img bs=1024 count=1440 >/dev/null
+	@./tool
 bootsect.o:bootsect.s
 	@nasm  $< -l $@.lst -o $@
 setup.o:setup.s
