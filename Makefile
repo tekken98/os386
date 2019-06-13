@@ -1,12 +1,17 @@
 CFLAGS=-Xassembler --no-pad-sections -Xassembler -R -Wall -fomit-frame-pointer -fstrength-reduce -O
 DRIVERS=kernel/chr_drv/chr_drv.a
 LDFLAGS=-s -x
-INCLUDE=-I/home/bao/prg/linux/include
+pwd:=$(shell pwd)
+INCLUDE:=-I$(pwd)/include
+CPP = gcc -nostdinc -nostdinc++ -nostdlib -E
+#CPP = gcc -E
 export INCLUDE
 export CFLAGS
+export CPP
 img: system.o
 	@(cd boot;make)
 	@virtualbox --startvm dos &
+	@#VBoxSDL --startvm dos
 	@#qemu-system-i386 -fda boot/floppy.img &
 	@#--debug-command-line
 system.o: boot/header.o init/main.o kernel/kernel.o $(DRIVERS)  mm/mm.o
@@ -15,7 +20,7 @@ system.o: boot/header.o init/main.o kernel/kernel.o $(DRIVERS)  mm/mm.o
 	@# ld -m emulation so nice :-?
 	@objcopy -S -O binary  -j .got -j .data  -j .text -j .rodata -j .bss bin.o system.o
 boot/header.o:boot/header.s
-	@nasm -f elf32 $< -l $.lst -o $@
+	@nasm -f elf32 $< -l $<.lst -o $@
 init/main.o:init/main.c
 	@(cd init;make)
 kernel/kernel.o: 

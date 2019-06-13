@@ -1,13 +1,11 @@
 #CPP = gcc -E -nostdinc -I../include
-CFLAGS1 =-Wall -O -I../include  -fomit-frame-pointer -fstrength-reduce
-#CFLAGS1 =-Wall -fstrength-reduce -fomit-frame-pointer -I../include
+CFLAGS1 =-Wall -O -fomit-frame-pointer -fstrength-reduce
 CFLAGS1 +=-Xassembler --no-pad-sections -Xassembler -R -I../include
 LDFLAGS =-s -x
-CPP = gcc -E  -I../include
-.c.o:
-	echo $(INCLUDE)
+CPP = gcc -E -I../include
+%.o:%.c
 	 @gcc -c $< -o $@ -m32  $(CFLAGS1)  $(INCLUDE)
-.s.o:
+%.o:%.s
 	 @nasm -f elf32 $< -l $@.lst -o $@
 OBJS= sys_call.o asm.o traps.o string.o sched.o
 kernel.o: $(OBJS)
@@ -25,7 +23,7 @@ sched.s sched.o: sched.c /usr/include/stdc-predef.h ../include/sched.h \
  ../include/processor.h ../include/m.h ../include/types.h \
  ../include/vstring.h
 string.s string.o: string.c /usr/include/stdc-predef.h \
- /usr/lib/gcc/x86_64-linux-gnu/7/include/stdarg.h ../include/types.h \
+ /usr/lib/gcc/x86_64-linux-gnu/8/include/stdarg.h ../include/types.h \
  ../include/console.h ../include/vstring.h ../include/types.h
 traps.s traps.o: traps.c /usr/include/stdc-predef.h ../include/types.h \
  ../include/io.h ../include/processor.h ../include/m.h ../include/types.h \

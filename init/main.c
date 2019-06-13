@@ -1,6 +1,6 @@
-#include <vstring.h>
-#include <m.h>
-#include <types.h>
+#include "vstring.h"
+#include "m.h"
+#include "types.h"
 #include "processor.h"
 extern void trap_init(void);
 static struct task_struct init_task = INIT_TASK;
