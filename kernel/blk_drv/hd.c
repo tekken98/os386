@@ -1,0 +1,5 @@
+void hd_init(void){
+    set_intr_gate(0x2e,hd_interrupt);
+    outb_p(inb_p(0x21)&0xfb,0x21);
+    out(inb_p(0xa1)&0xbf,0xa1);
+}

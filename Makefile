@@ -10,8 +10,8 @@ export CFLAGS
 export CPP
 img: system.o
 	@(cd boot;make)
-	@virtualbox --startvm dos &
-	@#VBoxSDL --startvm dos
+	@#virtualbox --startvm dos &
+	@VBoxSDL --startvm dos
 	@#qemu-system-i386 -fda boot/floppy.img &
 	@#--debug-command-line
 system.o: boot/header.o init/main.o kernel/kernel.o $(DRIVERS)  mm/mm.o

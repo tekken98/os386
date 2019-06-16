@@ -5,13 +5,13 @@
 #define HZ 100
 #define LATCH (1193180/HZ)
 long volatile jiffies =0;
+extern struct task_struct  * task;
 
 void timer_interrupt();
 void keyboard_interrupt();
 uchar tty_get_char();
 void system_call();
 void divide_error(void);
-extern struct task_struct  * task;
 void debug(void);
 void nmi(void);
 void int3(void);
@@ -98,7 +98,7 @@ void do_timer(){
     struct task_struct *to;
     uint time = from->times++;
     uint min=0;
-    for (int i = 0;i < 10; i++){
+    for (int i = 1;i < 10; i++){
             to = *(&task+i); // task[i] need  *task[]; declare
             if (to && to->running){
                 if (to->times < time)
