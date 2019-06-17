@@ -11,7 +11,12 @@ struct thread_info {
 };
 const uint TASK_SIZE = 4096;
 #define  THREAD_SIZE  sizeof(struct thread_info)
-#define THREAD_INFO(p) ((struct thread_info * )((uint)p + TASK_SIZE - THREAD_SIZE))
+//#define THREAD_INFO(p) ((struct thread_info * )((uint)p + TASK_SIZE - THREAD_SIZE))
+#define THREAD_INFO(p) (struct thread_info * )((uint)p + TASK_SIZE) - 1 
+#define EFLAGS(p) asm("pushf\t\n"\
+        "mov (%%esp),%0\t\n"\
+        "popf \t\n"\
+        :"=a"(p)::)
 uint mfork(){
     alloc_task_struct(p);
     cch *g = "child";
@@ -35,6 +40,10 @@ void start_thread( void (* fun)()){
     thread->cs = 0x8;
     thread->eflags=0;
     thread->esp = (uint)thread;
+    thread->cs = 0x18;
+    uint e ;
+    EFLAGS(e);
+    thread->eflags=e;
     uint pid = get_free_process();
     p->esp = thread->esp;
     p->running=1;

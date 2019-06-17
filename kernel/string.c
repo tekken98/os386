@@ -2,7 +2,6 @@
 #include "types.h"
 #include "console.h"
 #include "vstring.h"
-void writeWithReturn(char * );
 char buff [1024]={0};
 char alpha[] = "0123456789ABCDEF";
 void mmemcpy(void* dst, void* src,uint len){

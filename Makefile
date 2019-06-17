@@ -1,12 +1,17 @@
 CFLAGS=-Xassembler --no-pad-sections -Xassembler -R -Wall -fomit-frame-pointer -fstrength-reduce -O
 DRIVERS=kernel/chr_drv/chr_drv.a
 LDFLAGS=-s -x
-INCLUDE=-I/home/bao/prg/linux/include
+pwd:=$(shell pwd)
+INCLUDE:=-I$(pwd)/include
+CPP = gcc -nostdinc -nostdinc++ -nostdlib -E
+#CPP = gcc -E
 export INCLUDE
 export CFLAGS
+export CPP
 img: system.o
 	@(cd boot;make)
-	@virtualbox --startvm dos &
+	@#virtualbox --startvm dos &
+	@VBoxSDL --startvm dos
 	@#qemu-system-i386 -fda boot/floppy.img &
 	@#--debug-command-line
 system.o: boot/header.o init/main.o kernel/kernel.o $(DRIVERS)  mm/mm.o

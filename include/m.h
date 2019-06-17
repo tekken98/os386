@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 ulong get_free_page(void);
+void new_mem_page(uint);
 #ifdef __cplusplus
 }
 #endif

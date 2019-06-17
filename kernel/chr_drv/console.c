@@ -1,6 +1,6 @@
-#include "../../include/string.h"
-#include "../../include/io.h"
-#include "../../include/tty.h"
+#include "vstring.h"
+#include "io.h"
+#include "tty.h"
 const int VIDEOADDR=0xb8000;
 const int VIDEOWIDTH=80;
 const int VIDEOHEIGHT=24;
@@ -12,6 +12,8 @@ int current_col = 0;
 tty_queue tty_queue_buff = {0,0,0,{0}};
 void writeScreen(const char * begin, int len );
 void setCursor(void);
+void do_tty_interrupt(uint a);
+void backspace();
 
 void tty_put_char(uchar c){
    tty_queue * p = &tty_queue_buff;

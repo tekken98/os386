@@ -1,9 +1,10 @@
 #CPP = gcc -E -nostdinc -I../include
 #CFLAGS =-Wall -fstrength-reduce -fomit-frame-pointer -I../include
 #LDFLAGS =-s -x
-CPP = gcc -E  -I../include
+CPP = gcc -E -nostdinc  -I../include
 
 main.o:main.c
+	echo $(INCLUDE)
 	@gcc -m32 -c $< -o $@  $(CFLAGS) $(INCLUDE)
 clean:
 	-@rm -rf *.o
@@ -14,6 +15,5 @@ dep:
 	cp tmp_make Makefile
 	rm tmp_make
 ### Dependencies: 
-main.s main.o: main.c /usr/include/stdc-predef.h ../include/vstring.h \
- ../include/types.h ../include/m.h ../include/types.h \
- ../include/processor.h
+main.s main.o: main.c ../include/vstring.h ../include/types.h ../include/m.h \
+ ../include/types.h ../include/processor.h

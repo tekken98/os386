@@ -1,5 +1,5 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
-void writePos(char * buff);
+void writeWithReturn(char *msg);
 #endif
 
