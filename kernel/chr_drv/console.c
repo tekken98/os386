@@ -15,6 +15,15 @@ void setCursor(void);
 void do_tty_interrupt(uint a);
 void backspace();
 
+void clear(){
+    uint count = VIDEOWIDTH * VIDEOHEIGHT ;
+    for (uint i = 0; i < count;i++){
+        *((uchar*)VIDEOADDR+i*2) = 0x0;
+        *((uchar*)VIDEOADDR+i*2+1) = 15;
+    }
+    current_row = current_col = 0;
+}
+
 void tty_put_char(uchar c){
    tty_queue * p = &tty_queue_buff;
    if (((p->head+1) & (TTY_BUF_SIZE-1)) != p->tail){

@@ -7,6 +7,7 @@ extern "C" {
 #endif
 void printk(const char * fmt , ...);
 void mmemcpy( void * dst, void * src ,uint len);
+void print_mem(void *, uint);
 #ifdef __cplusplus
 }
 #endif

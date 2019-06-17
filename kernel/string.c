@@ -7,7 +7,7 @@ char alpha[] = "0123456789ABCDEF";
 void mmemcpy(void* dst, void* src,uint len){
     asm(
             "mov %%ecx,%%ebx \t \n"
-            "and 0xf,%%ebx \t \n"
+            "and $0x3,%%ebx \t \n"
             "shr $02,%%cx \t\n"
             "rep movsl \t\n"
             "mov %%ebx,%%ecx \t\n"
@@ -111,4 +111,17 @@ void printk(const char * str,...){
     mvsprintf(buff,str,va);
     va_end(va);
     writeWithReturn(buff);
+}
+void print_mem( void * p,uint size){
+    int i = 0;
+    while (size--){
+            printk("%02x",*((uchar*)p + i++));
+            if (i % 16 == 0){
+                printk("\n");
+            }else
+                printk(" ");
+    }
+    if (size % 16 > 0){
+        printk("\n");
+    }
 }

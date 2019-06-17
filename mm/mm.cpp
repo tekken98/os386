@@ -4,12 +4,6 @@
 #include "mm.h"
 static Memory memory;
 struct mem_page * free_mem_page = 0;
-struct mem_page {
-    int size;
-    ushort * free;
-    struct mem_page * next;
-    uint count;
-};
 uint new_mem_page(uint size){
     uint page = get_free_page();
     struct mem_page * p = (struct mem_page*) page;
@@ -19,44 +13,78 @@ uint new_mem_page(uint size){
     p->next = 0;
     uint count = (4096 - sizeof(struct mem_page)) / (size + 2);
     p->count = count;
-    for (int i = 0;i< count;i++){
-        *(ps+i) = i+1;
-    }
-    *(ps+count-1) = 0xffff;
-    printk("size %x,%x,%x, %d\n",p->size,p->free,p->next,p->count);
-    for (int i = 0;i < count;i++)
+    return page;
+}
+void print_mem_page(mem_page* p){
+    printk("size:%x,free:%x,next:%x,count:%d\n",p->size,p->free,p->next,p->count);
+    ushort * ps = (ushort*) (p + 1);
+    for (uint i = 0;i < p->count;i++)
     {
         ushort d = *(ps+i);
         printk("[%x]=%x ",i,d);
     }
-    return page;
+
 }
-    uint  kmalloc(uint size){
+uint  kmalloc(uint size){
     if (free_mem_page == 0){
-        free_new_page = new_mem_page(32);
+        free_mem_page = (mem_page*)new_mem_page(32);
     }
-    struct new_mem_page * pre = free_new_page;
+con:
+    struct mem_page * pre = free_mem_page;
     for(; pre != 0;pre = pre->next){
-       uint count = size / pre->size + 1;
-       uint find=0;
-       for (short i = 0;i<pre->count;i++){
-           if (*(pre->free + i) == 0){
-               find++;
-               if (find == count)
-                   break;
-           }else{
-               find = 0;
-           }
-       }
-       if (i < count){
-           for (int j = i - count ; j< count;j++){
-               *(pre->free +j) = j+1;
-           }
-           *(pre->free + count - 1) = 0xffff;
-           return (uint)(pre->free + pre->count) + pre->size * (i - count);
-       }
-           
+        uint count = size / pre->size + 1;
+        uint find=0;
+        ushort i = 0;
+        for (;i < pre->count;i++){
+            if (*(pre->free + i) == 0){
+                find++;
+                if (find == count){
+                    printk("node is %d \n",i);
+                    break;
+                }
+            }else{
+                find = 0;
+            }
+        }
+        if (i < pre->count){
+            for (uint j = i + 1  - count ; j < i ;j++){
+                *(pre->free +j) = j+1;
+            }
+            *(pre->free + i) = 0xffff;
+            //print_mem_page(pre);
+            printk("mem begin %x \n",(uint)(pre->free + pre->count));
+            return (uint)(pre->free + pre->count) + pre->size * (i + 1 - count);
+        }
+
     }
+        struct mem_page * n  = (mem_page*)new_mem_page(32);
+        n->next = free_mem_page;
+        free_mem_page = n;
+        goto con;
+
+    return 0;
+}
+void kfree( void * p){
+    if (free_mem_page == 0){
+        return ;
+    }
+    struct mem_page * pre = free_mem_page;
+    struct mem_page * cur = (struct mem_page *) ((uint)p & (~4095));
+    for(; pre != 0;pre = pre->next){
+        if (pre == cur){
+            uint space = (uint)p - (uint)(pre->free + pre->count);
+            uint node = space / pre->size;
+            ushort * begin = pre->free + node;
+            ushort * next = 0;
+            while((*begin) != 0xffff){
+                next  = pre->free +  *begin;
+                *begin = 0;
+                begin = next;
+            }
+            *begin = 0;
+        }
+    }
+
 }
 uint get_mem_pages(){
     return sizeof(memory);

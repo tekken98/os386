@@ -4,8 +4,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+struct mem_page {
+    int size;
+    ushort * free;
+    struct mem_page * next;
+    uint count;
+};
+
 ulong get_free_page(void);
-void new_mem_page(uint);
+uint new_mem_page(uint);
+uint kmalloc(uint size);
+void kfree(void *);
+//void print_mem_page(struct mem_page*);
 #ifdef __cplusplus
 }
 #endif

@@ -23,7 +23,7 @@ sched.s sched.o: sched.c /usr/include/stdc-predef.h ../include/sched.h \
  ../include/processor.h ../include/m.h ../include/types.h \
  ../include/vstring.h
 string.s string.o: string.c /usr/include/stdc-predef.h \
- /usr/lib/gcc/x86_64-linux-gnu/8/include/stdarg.h ../include/types.h \
+ /usr/lib/gcc/x86_64-linux-gnu/7/include/stdarg.h ../include/types.h \
  ../include/console.h ../include/vstring.h ../include/types.h
 traps.s traps.o: traps.c /usr/include/stdc-predef.h ../include/types.h \
  ../include/io.h ../include/processor.h ../include/m.h ../include/types.h \
