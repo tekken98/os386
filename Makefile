@@ -15,7 +15,7 @@ system.o: boot/header.o init/main.o kernel/kernel.o $(DRIVERS)  mm/mm.o
 	@# ld -m emulation so nice :-?
 	@objcopy -S -O binary  -j .got -j .data  -j .text -j .rodata -j .bss bin.o system.o
 boot/header.o:boot/header.s
-	@nasm -f elf32 $< -l $.lst -o $@
+	@nasm -f elf32 $< -l $@.lst -o $@
 init/main.o:init/main.c
 	@(cd init;make)
 kernel/kernel.o: 

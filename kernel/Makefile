@@ -5,7 +5,6 @@ CFLAGS1 +=-Xassembler --no-pad-sections -Xassembler -R -I../include
 LDFLAGS =-s -x
 CPP = gcc -E  -I../include
 .c.o:
-	echo $(INCLUDE)
 	 @gcc -c $< -o $@ -m32  $(CFLAGS1)  $(INCLUDE)
 .s.o:
 	 @nasm -f elf32 $< -l $@.lst -o $@

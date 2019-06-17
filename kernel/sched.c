@@ -4,7 +4,10 @@
 extern struct task_struct * task[];
 struct thread_info {
     uint eip;
+    uint cs;
+    uint eflags;
     uint esp;
+    uint ss;
 };
 const uint TASK_SIZE = 4096;
 #define  THREAD_SIZE  sizeof(struct thread_info)
@@ -29,6 +32,8 @@ void start_thread( void (* fun)()){
     mmemcpy(p,current,4096);
     struct thread_info * thread = THREAD_INFO(p);
     thread->eip = (uint)fun;
+    thread->cs = 0x8;
+    thread->eflags=0;
     thread->esp = (uint)thread;
     uint pid = get_free_process();
     p->esp = thread->esp;

@@ -125,5 +125,4 @@ msg:    db 'eax=%x',0xa,0x0
 device_not_available:
 page_fault:
 coprocessor_error:
-timer_interrupt:
 parallel_interrupt:
