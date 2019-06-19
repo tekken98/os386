@@ -1,5 +1,5 @@
 #CPP = gcc -E -nostdinc -I../include
-CFLAGS1 =-Wall -O -fomit-frame-pointer -fstrength-reduce
+CFLAGS1 =-Wall -fomit-frame-pointer -fstrength-reduce
 CFLAGS1 +=-Xassembler --no-pad-sections -Xassembler -R -I../include
 LDFLAGS =-s -x
 CPP = gcc -E -I../include

@@ -39,6 +39,7 @@ int main(){
 
     buff[510] = 0x55;
     buff[511] = 0xaa;
+    *((unsigned int*)&buff[512*5 - 4])  =  sectors << 9;
     fclose(op);
     op = fopen("floppy.img","w");
     ret = fwrite(buff,1,floppy_size,op);

@@ -1,0 +1,24 @@
+pci_ops.read=pci_generic_config_read at drivers/pci/access.c 
+pci_ops.map_bus=pci_ecam_map_bus
+pci_ecam_map_bus agt drivers/pci/ecam.c
+
+arch/x86/pci/common.c pcibios_scan_root -> pci_scan_root_bus
+arch/x86/pci/legacy.c 
+pci_subsys_init()
+-> pci_legacy_init 
+    -> pcibios_scan_root(0)
+        -> pci_scan_root_bus(null,0,pci_root_ops,pci_sysdata*,&resources)
+            ->pci_bus* = pci_create_root_bus();
+              pci_scan_child_bus(pci_bus*);
+                ->pci_scan_child_bus_extend();
+                  ->pci_scan_slot(bus,devfn); devfn += 8; devfn < 256;
+                    ->pci_scan_single_device(buf,devfn);
+                      ->pci_get_slot(buf,devfn);
+                        pci_scan_device(buf,devfn);
+                        ->pci_bus_read_dev_vendor_id(buf,devfn,&l,60*1000);
+                          ->pci_bus_generic_read_dev_vendor_id();
+                            ->pci_bus_read_config_dword(buf,devfn,PCI_VENDOR_ID,l)
+                            "defined in access.c as macro PCI_OP_READ(dword,u32,4)
+                            "to call bus->ops->read(buf,devfn,pos,len,&data);
+                          pci_alloc_dev(buf);
+                      for(fn = next_fn(buf,dev,0);fn >0;fn = next_fn(buf,dev,fn))
