@@ -4,11 +4,15 @@
 #include "processor.h"
 #include "console.h"
 #include "pci.h"
+#include "ide.h"
+#include "io.h"
 extern void trap_init(void);
 //static struct task_struct init_task = INIT_TASK;
 struct task_struct * task[10]={0};
 extern void start_thread( void(*fun)());
 extern struct mem_page* free_mem_page;
+extern void (*do_hd)();
+extern void reset_hd();
 void syscall(uint a){
     asm(" int $0x80 \t\n"
             ::"a"(a):);
@@ -36,10 +40,29 @@ void two(){
     }
 }
 void one(){
-    while(1){
         delay();
-        printk("D");
-    }
+        printk("this is from hd_interrupt");
+}
+void pci_base_addr(int bus,int dev, int fuc){
+    u32 ret;
+    int i = bus;
+    int j = dev;
+    int k = fuc;
+    ret = read_pci_config(i,j,k,PCI_BASE_ADDRESS_0);
+    printk("%08x ",ret);
+    ret = read_pci_config(i,j,k,PCI_BASE_ADDRESS_1);
+    printk("%08x ",ret);
+    //printk("%08x ",ret);
+    ret = read_pci_config(i,j,k,PCI_BASE_ADDRESS_2);
+    printk("%08x ",ret);
+    //printk("%08x ",ret);
+    ret = read_pci_config(i,j,k,PCI_BASE_ADDRESS_3);
+    printk("%08x ",ret);
+    //printk("%08x ",ret);
+    ret = read_pci_config(i,j,k,PCI_BASE_ADDRESS_4);
+    printk("%08x ",ret);
+    //printk("%08x\n",ret);
+    printk("\n");
 }
 
 void mmain()
@@ -47,7 +70,7 @@ void mmain()
     uint mem = get_free_page() + 4096;
     printk("This in mmain() Mem is %dM \n", mem / (1024 * 1024));
    trap_init();
-   //printk("fuck \n");
+   //asm("int $0x2e");
    /*
     mmemcpy(current,&init_task, sizeof(struct task_struct));
    for (int i = 0; i< 10;i++)
@@ -58,34 +81,28 @@ void mmain()
     start_thread(two);
     start_thread(one);
     */
-   /*
-   for (int i = 0;i < 0x1000;i++)
-       (*(char*)i) = 0xff;
-   outb(0x1,0xcfb);
-   outl(0x80000000,0xcf8);
-   u32 ret = inl(0xcf8);
-   */
-   clear();
-   for (int i = 0;i < 5;i += 1){
-       for (int j = 0;j<32;j++){
-           for(int k=0;k<8;k++){
-               //u32 addr = 0x80000000 + i * 0x10000 + (j*8) * 0x100 + k * 0x100;
-               u32 addr = pci_addr(i,j,k,PCI_CLASS_DEVICE);
-               //asm("mov %1,%%edx;out %0,%%dx"::"a"(addr),"b"(0xcf8):"dx");
-               outl(addr,0xcf8);
-               //*((u32*)0xcf8) = addr;
-               u16 ret = inw(0xcfc);
-               //u32 ret = *((u32*)0xcfc);
-               //int ret;
-               //asm("mov %0,%%edx;inl %%dx":"=r"(ret):"0"(0xcfc):"dx");
-               if (ret != 0xffff)
-               {
-                   printk(" bus:%02d,slot:%02d, %04x\n",i,j,ret);
-               }
-           }
-       }
-   }
-   while(1){
+    struct hd_cmd_struct cmd = {
+        .nsect = 1,
+        .sect = 1,
+        .driver = 0,
+        .cyl = 0,
+        .head = 0,
+        .cmd = 0x30,
+        .intr_addr = &write_intr,
+    };
+    int b;
+    char bb[512];
+    u8 r;
+    reset_controller();
+    cmd.cmd=0x20;
+    cmd.intr_addr = &read_intr;
+    for (int i = 0;i<1;i++){
+        hd_out(&cmd);
+        delay();
+        cmd.sect = i;
+    }
+
+    while(1){
         asm("hlt\t\n");
     }
 }

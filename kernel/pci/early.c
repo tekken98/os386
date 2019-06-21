@@ -51,8 +51,7 @@ u16 read_pci_config_16(u8 bus, u8 slot, u8 func, u8 offset)
 	return v;
 }
 
-void write_pci_config(u8 bus, u8 slot, u8 func, u8 offset,
-				    u32 val)
+void write_pci_config(u8 bus, u8 slot, u8 func, u8 offset, u32 val)
 {
 	outl(0x80000000 | (bus<<16) | (slot<<11) | (func<<8) | offset, 0xcf8);
 	outl(val, 0xcfc);

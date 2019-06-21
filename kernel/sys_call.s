@@ -3,6 +3,7 @@ section .text
 global timer_interrupt,system_call,hd_interrupt
 extern do_timer,jiffies
 extern do_sys_call,do_hd,unexpected_hd_interrupt
+extern printk
 timer_interrupt:
     push ds
     push es
@@ -73,13 +74,19 @@ hd_interrupt:
     out 0xa0,al
     jmp l1
 l1:  jmp l2
-l2:  xor edx,edx
+l2: 
+    push eax
+    push msg
+    ;call printk
+    add esp,4
+    pop eax
+    xor edx,edx
     xchg [do_hd],edx
     test edx,edx
     jne l3
     mov edx,unexpected_hd_interrupt
 l3: out 0x20,al
-    call [edx]
+    call edx
     pop eax
     pop ecx
     pop edx
@@ -87,3 +94,4 @@ l3: out 0x20,al
     pop es
     pop ds
     iret
+msg db 'in hd interrupt',0xa ,0x0

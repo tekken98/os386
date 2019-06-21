@@ -17,7 +17,7 @@ void mmemcpy(void* dst, void* src,uint len){
     return ;
 }
 uint toString(char *buf,int d, uint radical,char fill,
-        ushort count){
+        ushort count,char sepchar){
     uchar digit[16];
     char *p = buf;
     int i = 0;
@@ -26,23 +26,47 @@ uint toString(char *buf,int d, uint radical,char fill,
         digit[i++] = n;
     }
     digit[i] = n;
+    uint sep =  max(count,i+1);
+    sep %= 4;
+    if (sep > 0)
+        sep = 4 - sep;
     for (int j = i; j < count - 1;j++)
     {
+        if (sepchar){
+            if ( sep > 0 && sep % 4 == 0) {
+                *p++ = sepchar;
+            }
+            sep++;
+        }
         *p++ = fill;
     }
-
-    for (int j = 0; j <= i; j++)
-        p[j] = alpha[digit[i-j]];
+    for (int j = 0; j <= i; j++){
+        if(sepchar){
+            if (sep > 0 && sep % 4 == 0 && j+1 < i) {
+                *p++ = sepchar;
+            }
+            sep++; // this one is make c += ((sep -1) /4); if sep is 4 or 8 ...
+        }
+        *p++ = alpha[digit[i-j]];
+    }
     //return   count > i + 1 ? count:i+1;
-    return   max(count,i+1);
+    int c =  max(count,i+1);
+    if (sepchar)
+        c += ((sep - 1) / 4);
+    return c;
+}
+
+uint toStringBin(char *buf,uint d,char fill,
+        unsigned short count,char sepchar){
+    return toString(buf,d,2,fill,count,sepchar);
 }
 uint toStringInt(char *buf,uint d,char fill,
-        unsigned short count){
-    return toString(buf,d,10,fill,count);
+        unsigned short count,char sepchar){
+    return toString(buf,d,10,fill,count,sepchar);
 }
 uint toStringHex(char * buf,uint d,char fill,
-        unsigned short count){
-    return toString(buf,d,16,fill,count);
+        unsigned short count,char sepchar){
+    return toString(buf,d,16,fill,count,sepchar);
 }
 void mvsprintf(char * buf, const char * fmt, va_list va){
     char c;
@@ -50,6 +74,7 @@ void mvsprintf(char * buf, const char * fmt, va_list va){
     uint d;
     char *s;
     char fill='0';
+    char sep = 0x0;
     ushort count=0;
     while((c = *fmt++)){
         if ( c!='%'){
@@ -65,19 +90,29 @@ con:
                     ;
                 i--;
                 break;
-            case 'd':
+            case 'b':
                 d = va_arg(va,unsigned int);
-                d = toStringInt(&buf[i],d,fill,count);
+                d = toStringBin(&buf[i],d,fill,count,sep);
                 i += d ;
                 fill='0';
+                sep=0x0;
+                count=0;
+                break;
+            case 'd':
+                d = va_arg(va,unsigned int);
+                d = toStringInt(&buf[i],d,fill,count,sep);
+                i += d ;
+                fill='0';
+                sep=0x0;
                 count=0;
                 break;
             case 'x':
 x:
                 d = va_arg(va,int);
-                d = toStringHex(&buf[i],d,fill,count);
+                d = toStringHex(&buf[i],d,fill,count,sep);
                 i += d ;
                 fill='0';
+                sep=0x0;
                 count=0;
                 break;
             case 'c':
@@ -98,6 +133,9 @@ x:
                 buf[i++]='0';
                 buf[i++]='x';
                 goto x;
+            case 'S':
+                sep = *fmt++;
+                goto con;
             default:
                 break;
         }

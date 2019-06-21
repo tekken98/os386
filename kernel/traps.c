@@ -7,7 +7,7 @@
 long volatile jiffies =0;
 extern struct task_struct  * task;
 extern void hd_init(void);
-
+void hd_interrupt();
 void timer_interrupt();
 void keyboard_interrupt();
 uchar tty_get_char();
@@ -189,6 +189,7 @@ void trap_init(void){
     outb(a,0x61);
 // system_call interrupt
     set_sys_gate(0x80,&system_call);
+
     hd_init();
     sti();
 }
