@@ -52,7 +52,7 @@ con:
             }
             *(pre->free + i) = 0xffff;
             //print_mem_page(pre);
-            printk("mem begin %x \n",(uint)(pre->free + pre->count));
+            //printk("mem begin %x \n",(uint)(pre->free + pre->count));
             return (uint)(pre->free + pre->count) + pre->size * (i + 1 - count);
         }
 

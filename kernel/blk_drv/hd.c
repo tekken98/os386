@@ -8,6 +8,7 @@
 #include "io.h"
 #include "vstring.h"
 #include "ide.h"
+#include "m.h"
 extern void hd_interrupt(void);
 void (*do_hd)();
 struct hd_info_struct  hd_info;
@@ -67,7 +68,8 @@ void hd_out_no_wait(struct hd_cmd_struct * p){
     outb_p(p->sect,++port);
     outb_p(p->cyl,++port);
     outb_p(p->cyl>>8,++port);
-    outb_p(0xa0|(p->driver<<4)|p->head,++port);
+    //outb_p(0xa0|(p->driver<<4)|p->head,++port);
+    outb_p(0xd0|(p->driver<<4)|p->head,++port);
     outb(p->cmd,++port);
 }
 
@@ -75,16 +77,16 @@ void init_intr(void){
     printk("hd init\n");
 }
 void read_intr(void){
+    outb(0x0,0xd000);
     int r = inb(HD_STATUS);
-    //printk("hd read %08b \n",r);
+    printk("hd read %08b \n",r);
     if (( r & 0x08) == 0x08){
         port_read(HD_DATA,&hd_buff,256);
         for (int i = 0;i < 512;i++){
-            printk("%02x ",hd_buff[i]);
+            //printk("%02x ",hd_buff[i]);
         }
-        printk("\n");
+        //printk("\n");
     }
-    r = inb(HD_STATUS);
 }
 void write_intr(void){
     int r = inb(HD_STATUS);
@@ -126,8 +128,7 @@ void reset_controller(void){
 void hd_dump(void){
     u16 port = 0x1f1;
     u8 r;
-    char *name[8]={"HD_ERROR","HD_NSECTOR","HD_SECTOR",
-        "HD_LCYL","HD_HCYL","HD_CURRENT","HD_STATUS"};
+    //char *name[8]={"HD_ERROR","HD_NSECTOR","HD_SECTOR", "HD_LCYL","HD_HCYL","HD_CURRENT","HD_STATUS"};
    // for (int i = 0;i < 7; i++)
     //    printk("%08s ",name[i]);
     for (int i = 0;i < 7; i++)
@@ -180,7 +181,7 @@ int identify(){
     return 1;
 }
 void get_hd_cap(){
-    char *bb = (char*)kmalloc(512); 
+    u16 *bb = (u16*)kmalloc(512); 
     outb(0x2,HD_CMD);
     outb(0xa0,HD_CURRENT);
     outb(0xec,HD_STATUS);
@@ -199,6 +200,11 @@ void get_hd_cap(){
     hd_info.ctl = 0x0;
     hd_info.wpcom = 0;
     hd_info.lzon = 0;
+    hd_info.major = bb[80];
+    hd_info.dma_mode = bb[88];
+    if (hd_info.major & (0x1 << 6))
+        printk("support atapi-6\n");
+    printk("%016b\n", bb[88]);
     kfree(bb);
 }
 

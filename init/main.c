@@ -84,24 +84,48 @@ void mmain()
     struct hd_cmd_struct cmd = {
         .nsect = 1,
         .sect = 1,
-        .driver = 0,
         .cyl = 0,
         .head = 0,
-        .cmd = 0x30,
-        .intr_addr = &write_intr,
+        .driver = 0,
+        .cmd = 0xc8,
+        .intr_addr = &read_intr,
     };
-    int b;
-    char bb[512];
-    u8 r;
     reset_controller();
-    cmd.cmd=0x20;
-    cmd.intr_addr = &read_intr;
-    for (int i = 0;i<1;i++){
-        hd_out(&cmd);
-        delay();
-        cmd.sect = i;
-    }
+    //get_hd_cap();
 
+    char * t = (char*)kmalloc(512);
+    struct hd_prd * table = (struct hd_prd *) kmalloc(sizeof(struct hd_prd) + 16);
+    for (int i = 0; i < 512;i++)
+         t[i] = 0x78;
+    printk("%x\n",t);
+    printk("table is %x\n",table);
+    table = (u32)table + 16;
+    table = (u32)table & 0xfffffff0;
+    printk("after table is %x\n",table);
+        table->addr = (u32)t,
+        table->count = 512,
+        table->eot = 0x1;
+    u16 dma_base = 0xd000;
+cona:
+    outl((u32)table,dma_base+4);
+    outb(0x6,dma_base+2);
+    hd_out(&cmd);
+    outb(0x9,dma_base);
+    delay();
+    //hd_dump();
+    u8 r = inb(dma_base + 2);
+    //printk(" dma status %08b\n",r);
+    int *i = 0;
+    while(1){
+        if ((*i++ == 0x03020100) && (*i == 0x07060504))
+            break;
+        if ((u32)i > (u32)t)
+            goto cona;
+    }
+    //t = --i;
+    printk("%x \n",t);
+    for (int j = 0; j < 32;j++)
+        printk("%x ", (u8)t[j]);
     while(1){
         asm("hlt\t\n");
     }

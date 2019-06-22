@@ -11,6 +11,14 @@
 #define HD_CMD 0x3f6
 struct hd_info_struct {
     int head,sect,cyl,wpcom,lzon,ctl;
+    u16 major;
+    u16 dma_mode;
+};
+struct hd_prd {
+    u32 addr;
+    u32 count:16;
+    u32 resrved:15;
+    u32 eot:1;
 };
 struct hd_cmd_struct{
     int driver,nsect;

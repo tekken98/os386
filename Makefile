@@ -28,7 +28,7 @@ init/main.o:init/main.c
 	@(cd init;make)
 kernel/kernel.o: 
 	@(cd kernel;make)
-$(BLK_DRIVERS):
+$(BLK_DRIVERS):kernel/blk_drv/hd.c
 	@(cd kernel/blk_drv;make)
 $(CHR_DRIVERS):
 	@(cd kernel/chr_drv;make)

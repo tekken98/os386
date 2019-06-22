@@ -2,9 +2,15 @@
 #define PCI_H
 #include "types.h"
 #include "pci_regs.h"
+struct pci_devices_struct {
+    u16 vendor;
+    u16 id;
+    u16 command;
+    u16 status;
+};
 u32 inl(u32 addr);
-u16 inw(u16 addr);
-u8 inb(u8 addr);
+u16 inw(u32 addr);
+u8 inb(u32 addr);
 void outb(u8 value,u32 addr);
 void outw(u16 value,u32 addr);
 void outl(u32 value,u32 addr);

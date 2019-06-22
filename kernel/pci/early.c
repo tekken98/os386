@@ -1,4 +1,5 @@
 #include "types.h"
+#include "pci.h"
 #define PCI_IOPORT 1
 #ifdef PCI_IOPORT
 #define def_out(size,type) \
