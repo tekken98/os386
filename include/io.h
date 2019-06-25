@@ -1,6 +1,7 @@
 #ifndef IO_H
 #define IO_H
-#define outb(value,port)\
+#include "pci.h"
+#define iooutb(value,port)\
     asm("outb %%al,%%dx"::"a"(value),"d"(port));
 #define inb(port)({\
         unsigned char _v;\

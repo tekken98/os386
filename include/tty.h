@@ -9,5 +9,6 @@ typedef struct tty_queue{
     struct task_struct * proc_list;
     char buf[TTY_BUF_SIZE];
 } tty_queue;
+void scrollup(void);
 #endif
 

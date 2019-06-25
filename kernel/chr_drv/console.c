@@ -75,8 +75,9 @@ void writeWithReturn(const char * msg ){
 void writeScreen(const char * begin, int len ){
        if (len == 0) return;
        if (current_row > VIDEOHEIGHT){
-           current_row = 0;
-           current_col = 0;
+           scrollup();
+           current_row--;
+           //current_col = 0;
        }
        int pos = getPos();
        asm( 
@@ -121,4 +122,7 @@ void setCursor(void){
     outb_p(0xff&((pos-video_mem_start)>>1),video_port_val);
     *(unsigned char*)(pos+1) = 10;
     sti();
+}
+void scrollup(void){
+    asm("rep movsl\t\n"::"S"(VIDEOADDR + VIDEOWIDTH * 2),"D"(VIDEOADDR),"c"(VIDEOWIDTH * (current_row)/2));
 }

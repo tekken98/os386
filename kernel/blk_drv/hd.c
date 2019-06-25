@@ -1,9 +1,18 @@
-#define HD_DATA 0x1f0
-#define HD_ERROR 0x1f1
-#define HD_STATUS 0x1f7
-#define HD_CMD 0x3f6
-#define HD_CMD_READ 0x22
-#define HD_CMD_WRITE 0x32
+//TRAITS
+//void hd_init(void)
+//static void init_hd()
+//static int controller_ready(void)
+//void hd_out(struct hd_cmd_struct * p)
+//void hd_out_no_wait(struct hd_cmd_struct * p)
+//void init_intr(void)
+//void read_intr(void)
+//void write_intr(void)
+//void unexpected_hd_interrupt(void)
+//int driver_busy(void)
+//void reset_controller(void)
+//void hd_dump(void)
+//void reset_hd()
+//int identify()
 #include "traps.h"
 #include "io.h"
 #include "vstring.h"
@@ -14,6 +23,8 @@ void (*do_hd)();
 struct hd_info_struct  hd_info;
 u8 hd_buff[512]={0,};
 static void init_hd();
+struct dma_dest dmadest;
+
 void hd_init(void){
     init_hd();
     set_intr_gate(0x2e,&hd_interrupt);
@@ -27,6 +38,7 @@ static void init_hd(){
     hd_info.wpcom=0;
     hd_info.lzon = 0;
     hd_info.ctl = 0x0; 
+    hd_info.max_sector  = hd_read_native_max_address(); 
 }
 static int controller_ready(void){
     int retry = 10000;
@@ -54,7 +66,7 @@ void hd_out(struct hd_cmd_struct * p){
     outb_p(p->sect,++port);
     outb_p(p->cyl,++port);
     outb_p(p->cyl>>8,++port);
-    outb_p(0xa0|(p->driver<<4)|p->head,++port);
+    outb_p(0x40|(p->driver<<4)|p->head,++port); // LBA begin from 0 sector. CHS begin from 1 sector.
     outb(p->cmd,++port);
 }
 void hd_out_no_wait(struct hd_cmd_struct * p){
@@ -80,6 +92,8 @@ void read_intr(void){
     outb(0x0,0xd000);
     int r = inb(HD_STATUS);
     printk("hd read %08b \n",r);
+    hd_dump();
+    mmemcpy((void*)dmadest.addr , (void*)DMA_ADDR, dmadest.size);
     if (( r & 0x08) == 0x08){
         port_read(HD_DATA,&hd_buff,256);
         for (int i = 0;i < 512;i++){
@@ -89,13 +103,16 @@ void read_intr(void){
     }
 }
 void write_intr(void){
+    outb(0x0,0xd000);
     int r = inb(HD_STATUS);
-    //printk("hd write %08b \n",r);
+    printk("hd write %08b \n",r);
+    /*
     for (int i = 0;i < 512;i++){
        hd_buff[i] = 0x78;
     }
     if ((r & 0x80) == 0x80)
         port_write(HD_DATA,&hd_buff,256);
+        */
     r = inb(HD_STATUS);
 }
 void unexpected_hd_interrupt(void){
@@ -180,7 +197,7 @@ int identify(){
     }
     return 1;
 }
-void get_hd_cap(){
+void hd_get_cap(){
     u16 *bb = (u16*)kmalloc(512); 
     outb(0x2,HD_CMD);
     outb(0xa0,HD_CURRENT);
@@ -205,6 +222,69 @@ void get_hd_cap(){
     if (hd_info.major & (0x1 << 6))
         printk("support atapi-6\n");
     printk("%016b\n", bb[88]);
+    u32 size = hd_info.head * hd_info.sect * hd_info.cyl;
+    printk("size if %d bytes \n",size * 512);
+    printk("currents sectors %d bytes \n",(*((u32*)&bb[60]))* 512);
     kfree(bb);
 }
-
+void ide_read_sectors(u32 beg_sect,u32 sects ,u32 addr){
+    u16 dma_base = 0xd000;
+    struct hd_cmd_struct cmd ={
+        .nsect = sects,
+        .sect = beg_sect & 0xff,
+        .cyl = (beg_sect) >> 8 & 0xffff,
+        .head = (beg_sect) >> 24 & 0xf,
+        .cmd = IDE_DMA_READ_CMD,
+        .intr_addr=&read_intr,
+    };
+    reset_controller();
+    struct hd_prd * table = (struct hd_prd *)kmalloc(sizeof(struct hd_prd));
+    table->addr = DMA_ADDR;
+    table->count= sects << 9;
+    table->eot = 0x1;
+    dmadest.addr = addr;
+    dmadest.size = sects << 9;
+    outl((u32)table,dma_base+4);
+    outb(0x6,dma_base+2);
+    hd_out(&cmd);
+    outb(0x9,dma_base); 
+    delay();
+    u8 r = inb(dma_base + 2);
+    //printk("%08b\n",r);
+}
+void ide_write_sectors(u32 beg_sect,u32 sects ,u32 addr){
+    u16 dma_base = 0xd000;
+    struct hd_cmd_struct cmd ={
+        .nsect = sects,
+        .sect = beg_sect & 0xff,
+        .cyl = (beg_sect) >> 8 & 0xffff,
+        .head = (beg_sect) >> 24 & 0xf,
+        .cmd = IDE_DMA_WRITE_CMD,
+        .intr_addr=&write_intr,
+    };
+    reset_controller();
+    struct hd_prd * table = (struct hd_prd *)kmalloc(sizeof(struct hd_prd));
+    mmemcpy((void*)DMA_ADDR,(void*)addr,sects<<9);
+    table->addr = DMA_ADDR;
+    table->count= sects << 9;
+    table->eot = 0x1;
+    dmadest.addr = addr;
+    dmadest.size = sects << 9;
+    outl((u32)table,dma_base+4);
+    outb(0x6,dma_base+2);
+    hd_out(&cmd);
+    outb(IDE_DMA_WRITE_START,dma_base); 
+    delay();
+    u8 r = inb(dma_base + 2);
+    //printk("%08b\n",r);
+}
+uint hd_read_native_max_address(void){
+    u16 dma_base = 0xd000;
+    struct hd_cmd_struct cmd = {};
+    cmd.cmd = 0xf8;
+    reset_controller();
+    hd_out(&cmd);
+    delay();
+   u32 sector =  (inb(HD_DATA + 3 )) | ((inb(HD_DATA + 4 ) << 8)) | ((inb(HD_DATA + 5) << 16)) | ( (u32)(inb(HD_DATA + 6) & 0xf)<<24);
+   return sector;
+}

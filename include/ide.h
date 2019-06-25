@@ -9,10 +9,20 @@
 #define HD_CURRENT 0x1f6
 #define HD_STATUS  0x1f7
 #define HD_CMD 0x3f6
+#define IDE_DMA_READ_CMD 0xc8
+#define IDE_DMA_WRITE_CMD 0xca
+#define IDE_DMA_READ_START 0x9
+#define IDE_IDENTIFY_CMD 0xec
+#define IDE_DMA_WRITE_START 0x1
+struct dma_dest {
+    uint addr;
+    uint size;
+};
 struct hd_info_struct {
-    int head,sect,cyl,wpcom,lzon,ctl;
+    uint head,sect,cyl,wpcom,lzon,ctl;
     u16 major;
     u16 dma_mode;
+    u32 max_sector;
 };
 struct hd_prd {
     u32 addr;
@@ -21,8 +31,8 @@ struct hd_prd {
     u32 eot:1;
 };
 struct hd_cmd_struct{
-    int driver,nsect;
-    int head,sect,cyl,cmd;
+    uint driver,nsect;
+    uint head,sect,cyl,cmd;
     void (*intr_addr)(void);
 };
 struct hd_identify_struct{
@@ -53,7 +63,7 @@ struct hd_identify_struct{
     u32 dw60;
     u16 obsolete62;
 };
-
+void hd_get_cap(void);
 void hd_init(void);
 void hd_out(struct hd_cmd_struct *p);
 void hd_out_no_wait(struct hd_cmd_struct * p);
@@ -66,6 +76,9 @@ void hd_dump(void);
 void init_intr(void);
 void reset_hd(void);
 int identify(void);
+void ide_read_sectors(u32 beg_sect,u32 sects ,u32 addr);
+void ide_write_sectors(u32 beg_sect,u32 sects ,u32 addr);
+uint  hd_read_native_max_address();
 #define port_read(port,buf,nr) \
     asm("cld;rep;insw"::"d"(port),"D"(buf),"c"(nr):)
 #define port_write(port,buf,nr) \

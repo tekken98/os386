@@ -4,6 +4,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define  LOW_MEM 0x200000
+#define  PAGING_MEMORY (28 * 1024 * 1024)
+#define PAGING_PAGES  ((28*1024*1024) >> 12)
+#define  DMA_ADDR  (30*1024 * 1024)
 struct mem_page {
     int size;
     ushort * free;
