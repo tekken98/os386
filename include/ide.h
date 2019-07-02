@@ -79,6 +79,8 @@ int identify(void);
 void ide_read_sectors(u32 beg_sect,u32 sects ,u32 addr);
 void ide_write_sectors(u32 beg_sect,u32 sects ,u32 addr);
 uint  hd_read_native_max_address();
+#define bread ide_read_sectors
+#define bwrite ide_write_sectors
 #define port_read(port,buf,nr) \
     asm("cld;rep;insw"::"d"(port),"D"(buf),"c"(nr):)
 #define port_write(port,buf,nr) \

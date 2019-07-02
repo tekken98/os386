@@ -69,21 +69,6 @@ void hd_out(struct hd_cmd_struct * p){
     outb_p(0x40|(p->driver<<4)|p->head,++port); // LBA begin from 0 sector. CHS begin from 1 sector.
     outb(p->cmd,++port);
 }
-void hd_out_no_wait(struct hd_cmd_struct * p){
-    //register int port asm("dx");
-    u16 port;
-    do_hd = p->intr_addr; // this one move most front
-    outb_p(hd_info.ctl,HD_CMD);
-    port = HD_DATA;
-    outb_p(hd_info.wpcom >> 2,++port);
-    outb_p(p->nsect,++port);
-    outb_p(p->sect,++port);
-    outb_p(p->cyl,++port);
-    outb_p(p->cyl>>8,++port);
-    //outb_p(0xa0|(p->driver<<4)|p->head,++port);
-    outb_p(0xd0|(p->driver<<4)|p->head,++port);
-    outb(p->cmd,++port);
-}
 
 void init_intr(void){
     printk("hd init\n");
@@ -283,6 +268,7 @@ uint hd_read_native_max_address(void){
     struct hd_cmd_struct cmd = {};
     cmd.cmd = 0xf8;
     reset_controller();
+    outb(6,HD_CMD);
     hd_out(&cmd);
     delay();
    u32 sector =  (inb(HD_DATA + 3 )) | ((inb(HD_DATA + 4 ) << 8)) | ((inb(HD_DATA + 5) << 16)) | ( (u32)(inb(HD_DATA + 6) & 0xf)<<24);

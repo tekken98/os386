@@ -46,8 +46,60 @@ void start_thread( void (* fun)()){
     thread->eflags=e;
     uint pid = get_free_process();
     p->esp = thread->esp;
-    p->running=1;
+    p->state=TASK_RUNNING;
     p->times=0;
     p->pid = pid;
     task[pid] = p;
 }
+void switch_to(struct task_struct * from, struct task_struct * to){
+    if (from == to )
+        return;
+    asm(" pushf \t\n"
+            "push %%ebp \t\n"
+            "push $1f\t\n"
+            "mov %%esp,(%%eax)\t\n"
+            "mov (%%edx),%%esp \t\n"
+            "ret \t\n"
+            "1: \t\n"
+            "pop %%ebp \t\n"
+            "popf \t\n" 
+            ::"a"(&(from->esp)),"d"(&(to->esp)):);
+
+}
+
+void schedule(){
+    struct task_struct *from = current;
+    struct task_struct *to;
+    uint time = from->times++;
+    uint min=0;
+    for (int i = 1;i < 10; i++){
+            //to = *(&task+i); // task[i] need  *task[]; declare
+            to = task[i]; // task[i] need  *task[]; declare
+            if (to && to->state == TASK_RUNNING){
+                if (to->times < time)
+                    min = i;
+            }
+    }
+    if (min < 10){
+        to = task[min];
+        if (to)
+            switch_to(from,to);
+        //printk("times %d\n",from->times);
+        }
+}
+void sleep_on(struct task_struct ** p){
+    struct task_struct * tmp = *p;
+    *p = current;
+    (*p)->state = TASK_UNINTERRUPTIBLE;
+    schedule();
+    if (tmp){
+        tmp->state =  TASK_RUNNING;
+    }
+}
+void wake_up(struct task_struct **p){
+    if (p && *p) {
+        (*p)->state = TASK_RUNNING;
+        *p = NULL;
+    }
+}
+

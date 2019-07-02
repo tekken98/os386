@@ -5,5 +5,9 @@
 #define TASK_UNINTERRUPTIBLE    2
 #define TASK_ZOMBIE 4
 #define TASK_STOPPED    8
+#include "processor.h"
+void schedule();
+void sleep_on(struct task_struct ** p);
+void wake_up(struct task_struct **p);
 #endif
 

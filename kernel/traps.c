@@ -1,11 +1,10 @@
 #include "types.h"
 #include "io.h"
-#include "processor.h"
 #include "vstring.h"
+#include "sched.h"
 #define HZ 100
 #define LATCH (1193180/HZ)
 long volatile jiffies =0;
-extern struct task_struct  * task;
 extern void hd_init(void);
 void hd_interrupt();
 void timer_interrupt();
@@ -79,39 +78,8 @@ void do_coprocessor_error(long esp,long error_code){
 void do_reserved(long esp,long error_code){
     printk("do_reserved\n");
 }
-void switch_to(struct task_struct * from, struct task_struct * to){
-    if (from == to )
-        return;
-    asm(" pushf \t\n"
-            "push %%ebp \t\n"
-            "push $1f\t\n"
-            "mov %%esp,(%%eax)\t\n"
-            "mov (%%edx),%%esp \t\n"
-            "ret \t\n"
-            "1: \t\n"
-            "pop %%ebp \t\n"
-            "popf \t\n" 
-            ::"a"(&(from->esp)),"d"(&(to->esp)):);
-
-}
 void do_timer(){
-    struct task_struct *from = current;
-    struct task_struct *to;
-    uint time = from->times++;
-    uint min=0;
-    for (int i = 1;i < 10; i++){
-            to = *(&task+i); // task[i] need  *task[]; declare
-            if (to && to->running){
-                if (to->times < time)
-                    min = i;
-            }
-    }
-    if (min < 10){
-        to = *(&task+min);
-        if (to)
-            switch_to(from,to);
-        //printk("times %d\n",from->times);
-        }
+    schedule();
 }
 void do_sys_call(uint n){
     printk("system call %d \n",n);

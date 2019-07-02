@@ -9,7 +9,7 @@ struct task_struct
     ulong esp;
     ulong ss;
     char name[16];
-    ulong running;
+    ulong run;
     ulong times;
     ulong pid; //process id
 };
