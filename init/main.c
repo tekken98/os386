@@ -37,20 +37,24 @@ void init(){
 void three(){
     while(1){
         delay();
-        printk("A");
+        printk("<");
         sleep_on(&sleep_task);
-        printk("-A");
+        printk(">");
     }
 }
 void two(){
     while(1){
         delay();
-        printk("C");
+        printk("(");
         sleep_on(&sleep_task);
-        printk("-C");
+        printk(")");
     }
 }
 void one(){
+    char * addr = (char*) kmalloc(512);
+    bread(0,1,addr);
+    printk("hello %s\n",addr);
+    kfree(addr);
     while(1){
         delay();
         printk("D");
@@ -74,10 +78,6 @@ void mmain()
     start_thread(three);
     start_thread(two);
     start_thread(one);
-    char * addr = (char*) kmalloc(512);
-    bread(0,1,addr);
-    printk("%s\n",addr);
-    kfree(addr);
     while(1){
         asm("hlt\t\n");
     }

@@ -16,12 +16,12 @@ uint new_mem_page(uint size){
     return page;
 }
 void print_mem_page(mem_page* p){
-    //printk("size:%x,free:%x,next:%x,count:%d\n",p->size,p->free,p->next,p->count);
+    printk("size:%x,free:%x,next:%x,count:%d\n",p->size,p->free,p->next,p->count);
     ushort * ps = (ushort*) (p + 1);
     for (uint i = 0;i < p->count;i++)
     {
         ushort d = *(ps+i);
-        //printk("[%x]=%x ",i,d);
+        printk("[%x]=%x ",i,d);
     }
 
 }

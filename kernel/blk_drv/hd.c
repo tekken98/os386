@@ -13,11 +13,13 @@
 //void hd_dump(void)
 //void reset_hd()
 //int identify()
+#include "sched.h"
 #include "traps.h"
 #include "io.h"
 #include "vstring.h"
 #include "ide.h"
 #include "m.h"
+struct task_struct * waiting;
 extern void hd_interrupt(void);
 void (*do_hd)();
 struct hd_info_struct  hd_info;
@@ -86,6 +88,7 @@ void read_intr(void){
         }
         //printk("\n");
     }
+    wake_up(&waiting);
 }
 void write_intr(void){
     outb(0x0,0xd000);
@@ -99,6 +102,7 @@ void write_intr(void){
         port_write(HD_DATA,&hd_buff,256);
         */
     r = inb(HD_STATUS);
+    wake_up(&waiting);
 }
 void unexpected_hd_interrupt(void){
     int r = inb(HD_STATUS);
@@ -233,8 +237,8 @@ void ide_read_sectors(u32 beg_sect,u32 sects ,u32 addr){
     outb(0x6,dma_base+2);
     hd_out(&cmd);
     outb(0x9,dma_base); 
-    delay();
-    u8 r = inb(dma_base + 2);
+    sleep_on(&waiting);
+    //u8 r = inb(dma_base + 2);
     //printk("%08b\n",r);
 }
 void ide_write_sectors(u32 beg_sect,u32 sects ,u32 addr){
@@ -259,18 +263,18 @@ void ide_write_sectors(u32 beg_sect,u32 sects ,u32 addr){
     outb(0x6,dma_base+2);
     hd_out(&cmd);
     outb(IDE_DMA_WRITE_START,dma_base); 
-    delay();
-    u8 r = inb(dma_base + 2);
+    sleep_on(&waiting);
+    //u8 r = inb(dma_base + 2);
     //printk("%08b\n",r);
 }
 uint hd_read_native_max_address(void){
-    u16 dma_base = 0xd000;
+    //u16 dma_base = 0xd000;
     struct hd_cmd_struct cmd = {};
     cmd.cmd = 0xf8;
     reset_controller();
     outb(6,HD_CMD);
     hd_out(&cmd);
-    delay();
+    sleep_on(&waiting);
    u32 sector =  (inb(HD_DATA + 3 )) | ((inb(HD_DATA + 4 ) << 8)) | ((inb(HD_DATA + 5) << 16)) | ( (u32)(inb(HD_DATA + 6) & 0xf)<<24);
    return sector;
 }
