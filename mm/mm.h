@@ -11,10 +11,10 @@ class Memory
     inline void  copy_page(uint from,uint to){
         asm("cld;rep;movsl"::"S"(from),"D"(to),"c"(1024):"cx","di","si");
     };
-    void free_page(ulong addr);
-    void free_pages(ulong addr,uint nr);
-    ulong get_free_page(void);
-    ulong get_free_pages(uint nr);
+    void free_page(void * addr);
+    void free_pages(void * addr,uint nr);
+    void *  get_free_page(void);
+    void * get_free_pages(uint nr);
     void panic(cch* err);
 }; 
 #endif

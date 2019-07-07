@@ -107,7 +107,7 @@ void printbuff(char *addr,uint len){
 }
 void mmain()
 {
-    uint mem = get_free_page() + 4096;
+    uint mem = (uint)get_free_page() + 4096;
     clear();
     printk("This in os386 Mem is %dM \n", mem / (1024 * 1024));
     trap_init();

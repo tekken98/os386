@@ -4,10 +4,10 @@
 #include "mm.h"
 static Memory memory;
 struct mem_page * free_mem_page = 0;
-uint new_mem_page(uint size){
-    uint page = get_free_page();
+void * new_mem_page(uint size){
+    void *  page = get_free_page();
     struct mem_page * p = (struct mem_page*) page;
-    ushort *ps = (ushort *) (page + sizeof(struct mem_page));
+    ushort *ps = (ushort *) ((uint)page + sizeof(struct mem_page));
     p->size = size;
     p->free = ps;
     p->next = 0;
@@ -25,7 +25,7 @@ void print_mem_page(mem_page* p){
     }
 
 }
-uint  kmalloc(uint size){
+void *   kmalloc(uint size){
     if (free_mem_page == 0){
         free_mem_page = (mem_page*)new_mem_page(32);
     }
@@ -53,7 +53,7 @@ con:
             *(pre->free + i) = 0xffff;
             //print_mem_page(pre);
             //printk("mem begin %x \n",(uint)(pre->free + pre->count));
-            return (uint)(pre->free + pre->count) + pre->size * (i + 1 - count);
+            return (pre->free + pre->count) + pre->size * (i + 1 - count);
         }
 
     }
@@ -88,30 +88,31 @@ void kfree( void * p){
 uint get_mem_pages(){
     return sizeof(memory);
 }
-void free_page(ulong addr){
+void free_page(void * addr){
     memory.free_page(addr);
 }
-void free_pages(ulong addr,uint nr){
+void free_pages(void * addr,uint nr){
     memory.free_pages(addr,nr);
 }
-ulong get_free_page(void){
+void *  get_free_page(void){
     return memory.get_free_page();
 }
-ulong get_free_pages(uint nr){
+void * get_free_pages(uint nr){
     return memory.get_free_pages(nr);
 }
 //MEMORY BEGIN
-void Memory::free_pages(ulong addr,uint nr)
+void Memory::free_pages(void * addr,uint nr)
 {
-    addr -= LOW_MEM;
-    addr >>= 12;
+    uint p = (uint)addr;
+    p -= LOW_MEM;
+    p >>= 12;
     for (uint i = 0;i < nr;i++){
-        if ( m_mem_map[addr + i]--)
+        if ( m_mem_map[p + i]--)
             continue ;
         panic("trying to free free page");
     }
 }
-ulong Memory::get_free_pages(uint nr)
+void * Memory::get_free_pages(uint nr)
 {
     uint  *addr ;
     for (uint i = PAGING_PAGES - 1; i > 0;i--){
@@ -128,7 +129,7 @@ ulong Memory::get_free_pages(uint nr)
             addr =(uint *) ((j << 12 ) + LOW_MEM);
             for (uint j = 0; j < 1024 * nr;j++)
                 addr[j] = 0;
-            return (int)addr;
+            return addr;
         }
     }
     return 0;
@@ -137,11 +138,12 @@ void Memory::panic(cch* err)
 {
     printk(err);
 }
-void Memory::free_page(ulong addr)
+void Memory::free_page(void * addr)
 {
-    addr -= LOW_MEM;
-    addr >>= 12;
-    if ( m_mem_map[addr]--) return ;
+    uint p = (uint)addr;
+    p -= LOW_MEM;
+    p >>= 12;
+    if ( m_mem_map[p]--) return ;
     panic("trying to free free page");
 }
 Memory::Memory()
@@ -149,7 +151,7 @@ Memory::Memory()
     for (uint i = 0;i < PAGING_PAGES;i++)
         m_mem_map[i] = 0;
 }
-ulong Memory::get_free_page(void)
+void *  Memory::get_free_page(void)
 {
     uint  *addr ;
     for (uint i = PAGING_PAGES - 1; i > 0;i--){
@@ -158,7 +160,7 @@ ulong Memory::get_free_page(void)
             addr =(uint *) ((i << 12 ) + LOW_MEM);
             for (int j = 0; j < 1024;j++)
                 addr[j] = 0;
-            return (int)addr;
+            return addr;
         }
     }
     return 0;

@@ -24,7 +24,7 @@ void clear(){
     }
     current_row = current_col = 0;
 }
-struct task_struct tty_task;
+struct task_struct * tty_task;
 void tty_put_char(uchar c){
    tty_queue * p = &tty_queue_buff;
    if (((p->head+1) & (TTY_BUF_SIZE-1)) != p->tail){

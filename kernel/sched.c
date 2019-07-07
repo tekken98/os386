@@ -105,7 +105,10 @@ void wake_up(struct task_struct **p){
 void exit(int err){
     current->state = TASK_ZOMBIE;
     task[current->pid] = NULL;
-    free_page((ulong)current);
+    free_page(current);
     schedule();
+    while(1){
+        asm("hlt");
+    }
     printk("should never return here!");
 }

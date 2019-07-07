@@ -15,7 +15,7 @@ void format(void){
     p->data_block_begin = 5;
     p->data_block_nr = 8192;
     bwrite(1 * 2 ,2,(ulong)p);
-    free_page((ulong)p);
+    free_page(p);
 }
 void read_super_all(){
     struct super_block *sb;
@@ -31,7 +31,7 @@ void read_super(struct super_block * super){
     struct super_block * p = (struct super_block*) get_free_page();
     bread(1 * 2, 2, (ulong)p);
     *super = *p;
-    free_page((ulong)p);
+    free_page(p);
 }
 void write_super_all(){
     struct super_block *sb = g_super.sb;

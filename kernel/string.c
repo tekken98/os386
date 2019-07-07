@@ -22,15 +22,16 @@ uint strlen(const char * str){
         c++;
     return c;
 }
-uint strcmp(const char * first , const char * second){
-    if (strlen(*first) != strlen(*second))
+int strcmp(const char * first , const char * second){
+    if (strlen(first) != strlen(second))
         return 1;
     while(*first++ == *second++ ){
-        if (*first == 0x0 )
+        if (*first == 0x0 ) {
             if (*second == 0x0)
                 return 0;
             else
                 return 1;
+        }
     }
     return 1;
 }

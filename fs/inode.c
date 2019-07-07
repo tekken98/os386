@@ -31,15 +31,18 @@ uint find_first_zero(u32 * data,u32 size){
 uint set_bit(uint index,u32 * data){
     u32 p  = index / 32;
     u32 b = index % 32;
+    int ret =  data[p] & (0x1 << b);
     data[p] |= (0x1 << b);
-    //return data[p] & (0x1 << b);
+    return ret;
 }
 uint clear_bit(uint index,u32 *data){
     u32 p  = index / 32;
     u32 b = index % 32;
+    uint ret = data[p] &  (0x1 << b);
     data[p] &= ~(0x1 << b);
+    return ret;
 }
-struct inode_stuct *  new_inode(){
+struct inode_struct *  new_inode(){
     struct super_block * sb = g_super.sb;
     struct inode_struct *p = (struct inode_struct *)kmalloc(sizeof(struct inode_struct));
     p->inums = find_first_zero((u32*)g_super.inode_bitmap,sb->inode_block_nr * 1024 / 4);
@@ -88,9 +91,12 @@ uint find_entry(const char * pathname){
     int i;
     for (i =0;i < 1024 / 32;i++){
         if (dir[i].name[0] != 0x0)
-            if (!strcmp(dir[i].name,pathname))
+            if (!strcmp(dir[i].name,pathname)){
+                    free_page(p);
                     return 1;
+            }
     }
+    free_page(p);
     return 0;
 }
 int sys_mkdir(const char * pathname){

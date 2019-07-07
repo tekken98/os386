@@ -15,12 +15,12 @@ struct mem_page {
     uint count;
 };
 
-ulong get_free_page(void);
-ulong get_free_pages(uint nr);
-void free_page(ulong);
-void free_pages(ulong addr,uint nr);
-uint new_mem_page(uint);
-uint kmalloc(uint size);
+void * get_free_page(void);
+void * get_free_pages(uint nr);
+void free_page(void*);
+void free_pages(void* addr,uint nr);
+void * new_mem_page(uint);
+void * kmalloc(uint size);
 void kfree(void *);
 //void print_mem_page(struct mem_page*);
 #ifdef __cplusplus
