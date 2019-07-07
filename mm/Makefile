@@ -1,10 +1,10 @@
 #CPP = gcc -E -nostdinc -I../include
 #CFLAGS =-Wall -fstrength-reduce -fomit-frame-pointer -I../include
 #LDFLAGS =-s -x
-CPP = gcc -E -nostdinc  -I../include
+CPP = gcc -nostdinc -nostdinc++ -nostdlib  -I../include
 .c.o:
 %.o : %.cpp
-	 @gcc -c $< -o $@ -m32  $(CFLAGS)  $(INCLUDE)
+	 $(CPP) -c $< -o $@ -m32  $(CFLAGS)  $(INCLUDE)
 OBJS=
 mm.o:$(OBJS)
 

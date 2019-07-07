@@ -85,7 +85,7 @@ void schedule(){
         if (to)
             switch_to(from,to);
         //printk("times %d\n",from->times);
-        }
+    }
 }
 void sleep_on(struct task_struct ** p){
     struct task_struct * tmp = *p;
@@ -102,4 +102,10 @@ void wake_up(struct task_struct **p){
         *p = NULL;
     }
 }
-
+void exit(int err){
+    current->state = TASK_ZOMBIE;
+    task[current->pid] = NULL;
+    free_page((ulong)current);
+    schedule();
+    printk("should never return here!");
+}

@@ -16,6 +16,9 @@ struct mem_page {
 };
 
 ulong get_free_page(void);
+ulong get_free_pages(uint nr);
+void free_page(ulong);
+void free_pages(ulong addr,uint nr);
 uint new_mem_page(uint);
 uint kmalloc(uint size);
 void kfree(void *);

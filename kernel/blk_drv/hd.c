@@ -58,7 +58,7 @@ void hd_out(struct hd_cmd_struct * p){
     outb_p(hd_info.ctl,HD_CMD);
     if (!controller_ready()){
         printk("HD controller not ready!\n");
-        hd_dump();
+        //hd_dump();
         return ;
     }
     do_hd = p->intr_addr; // this one move most front
@@ -78,8 +78,8 @@ void init_intr(void){
 void read_intr(void){
     outb(0x0,0xd000);
     int r = inb(HD_STATUS);
-    printk("hd read %08b \n",r);
-    hd_dump();
+    //printk("hd read %08b \n",r);
+    //hd_dump();
     mmemcpy((void*)dmadest.addr , (void*)DMA_ADDR, dmadest.size);
     if (( r & 0x08) == 0x08){
         port_read(HD_DATA,&hd_buff,256);
@@ -106,10 +106,10 @@ void write_intr(void){
 }
 void unexpected_hd_interrupt(void){
     int r = inb(HD_STATUS);
-    printk("Unexpected HD interrupt %08b \n",r);
+    //printk("Unexpected HD interrupt %08b \n",r);
     if (r & 0x1){
-       int b = inb(HD_ERROR); 
-       printk("HD_ERROR %08b \n",b);
+       //int b = inb(HD_ERROR); 
+       //printk("HD_ERROR %08b \n",b);
     }
 }
 int driver_busy(void){
@@ -128,7 +128,7 @@ void reset_controller(void){
         printk("busy\n");
     if ((i = inb(HD_ERROR)) != 1){
         printk("reset failed\n");
-        hd_dump();
+        //hd_dump();
     }
 }
 void hd_dump(void){

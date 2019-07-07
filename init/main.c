@@ -6,8 +6,9 @@
 #include "pci.h"
 #include "ide.h"
 #include "io.h"
+#include "fs.h"
 extern void trap_init(void);
-static struct task_struct init_task = INIT_TASK;
+//static struct task_struct init_task = INIT_TASK;
 struct task_struct * task[10]={0};
 struct task_struct * sleep_task = NULL;
 int count = 0;
@@ -23,16 +24,56 @@ void delay(){
     for(int i = 0;i < 10000000;)
        i++; 
 }
-void init(){
-    while(1){
-        delay();
-        printk("B");
-        count++;
-        if (count > 10){
-            count = 0;
-            wake_up(&sleep_task);
-        }
+void one();
+void run_command(char * command){
+    char * argv[16];
+    while( *command++ == ' ');
+    command--;
+    int i = 0;
+    argv[i++] = command;
+    while( *command != 0x0){
+        if ( *command == ' '){
+            *command = 0x0;
+            while( *++command == ' ');
+            argv[i++] = command;
+        }else
+            command++;
     }
+    if (strcmp(argv[0],"format") == 0){
+        printk("\n run format\n");
+        format();
+    }else if (strcmp(argv[0],"mkdir") == 0){
+        printk("\n run mkdir \n");
+        sys_mkdir(argv[1]);
+    }else if (strcmp(argv[0],"cls") == 0){
+        clear();
+    }
+
+    printk("\n>");
+}
+void init(){
+    char console_buff[256];
+    int i = 0;
+   uchar c;
+   //format();
+   read_super_all();
+   printk("\n>");
+   while(1){
+        c = tty_get_char();
+        if ( c & 0x80 )
+            continue;
+        if (c == 0x0)
+            continue;
+        if (c == 0xd){
+            console_buff[i] = 0x0;
+            run_command(console_buff);
+            i = 0;
+        }else{
+            console_buff[i++] = c;
+            printk("%c",c);
+        }
+        //exit(1);
+   }
 }
 void three(){
     while(1){
@@ -52,7 +93,7 @@ void two(){
 }
 void one(){
     char * addr = (char*) kmalloc(512);
-    bread(0,1,addr);
+    bread(0,1,(ulong)addr);
     printk("hello %s\n",addr);
     kfree(addr);
     while(1){
@@ -75,9 +116,9 @@ void mmain()
         task[i] = 0;
     task[0] = current;
     start_thread(init);
-    start_thread(three);
-    start_thread(two);
-    start_thread(one);
+   // start_thread(three);
+   // start_thread(two);
+   // start_thread(one);
     while(1){
         asm("hlt\t\n");
     }

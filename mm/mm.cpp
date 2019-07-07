@@ -61,7 +61,6 @@ con:
         n->next = free_mem_page;
         free_mem_page = n;
         goto con;
-
     return 0;
 }
 void kfree( void * p){
@@ -92,10 +91,48 @@ uint get_mem_pages(){
 void free_page(ulong addr){
     memory.free_page(addr);
 }
+void free_pages(ulong addr,uint nr){
+    memory.free_pages(addr,nr);
+}
 ulong get_free_page(void){
     return memory.get_free_page();
 }
+ulong get_free_pages(uint nr){
+    return memory.get_free_pages(nr);
+}
 //MEMORY BEGIN
+void Memory::free_pages(ulong addr,uint nr)
+{
+    addr -= LOW_MEM;
+    addr >>= 12;
+    for (uint i = 0;i < nr;i++){
+        if ( m_mem_map[addr + i]--)
+            continue ;
+        panic("trying to free free page");
+    }
+}
+ulong Memory::get_free_pages(uint nr)
+{
+    uint  *addr ;
+    for (uint i = PAGING_PAGES - 1; i > 0;i--){
+        if (m_mem_map[i] == 0){
+            uint j = i;
+            while(--nr > 0 && m_mem_map[j--] == 0 )
+                ;
+            if (nr > 0){
+                i = j;
+                continue;
+            }
+            for (uint k=j;k<=i;k++)
+                m_mem_map[k]  = 1;
+            addr =(uint *) ((j << 12 ) + LOW_MEM);
+            for (uint j = 0; j < 1024 * nr;j++)
+                addr[j] = 0;
+            return (int)addr;
+        }
+    }
+    return 0;
+}
 void Memory::panic(cch* err)
 {
     printk(err);

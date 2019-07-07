@@ -1,6 +1,7 @@
 #include "vstring.h"
 #include "io.h"
 #include "tty.h"
+#include "sched.h"
 const int VIDEOADDR=0xb8000;
 const int VIDEOWIDTH=80;
 const int VIDEOHEIGHT=24;
@@ -23,7 +24,7 @@ void clear(){
     }
     current_row = current_col = 0;
 }
-
+struct task_struct tty_task;
 void tty_put_char(uchar c){
    tty_queue * p = &tty_queue_buff;
    if (((p->head+1) & (TTY_BUF_SIZE-1)) != p->tail){
@@ -34,6 +35,8 @@ void tty_put_char(uchar c){
 uchar tty_get_char(){
    uchar c=0x0;
    tty_queue * p = &tty_queue_buff;
+   if (p->head == p->tail)
+       sleep_on(&tty_task);
    if (p->head != p->tail){
        c  = p->buf[p->tail++];
        p->tail &= (TTY_BUF_SIZE - 1);
@@ -41,8 +44,9 @@ uchar tty_get_char(){
    return c;
 }
 void do_tty_interrupt(uint a){
-    printk("tty_interrupt\n");
+    //printk("tty_interrupt\n");
     tty_put_char((uchar)a);
+    wake_up(&tty_task);
 }
 int getPos(){
        return current_row * VIDEOWIDTH * 2 + current_col * 2 + VIDEOADDR;

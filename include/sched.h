@@ -9,5 +9,6 @@
 void schedule();
 void sleep_on(struct task_struct ** p);
 void wake_up(struct task_struct **p);
+void exit(int);
 #endif
 

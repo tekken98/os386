@@ -16,6 +16,24 @@ void mmemcpy(void* dst, void* src,uint len){
     //printk("%p,%p,%d\n",dst,src,len);
     return ;
 }
+uint strlen(const char * str){
+    uint c = 0;
+    while(*str++)
+        c++;
+    return c;
+}
+uint strcmp(const char * first , const char * second){
+    if (strlen(*first) != strlen(*second))
+        return 1;
+    while(*first++ == *second++ ){
+        if (*first == 0x0 )
+            if (*second == 0x0)
+                return 0;
+            else
+                return 1;
+    }
+    return 1;
+}
 uint toString(char *buf,int d, uint radical,char fill,
         ushort count,char sepchar){
     uchar digit[16];

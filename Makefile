@@ -6,8 +6,7 @@ LDFLAGS=-s -x
 #LDFLAGS=-s -x -M
 pwd:=$(shell pwd)
 INCLUDE:=-I$(pwd)/include
-CPP = gcc -nostdinc -nostdinc++ -nostdlib -E
-#CPP = gcc -E
+CPP = gcc -nostdinc -nostdinc++ -nostdlib 
 export INCLUDE
 export CFLAGS
 export CPP
@@ -17,9 +16,9 @@ img: system.o
 	@VBoxSDL --startvm dos
 	@#qemu-system-i386 -fda boot/floppy.img &
 	@#--debug-command-line
-system.o: boot/header.o init/main.o kernel/kernel.o $(CHR_DRIVERS)  $(BLK_DRIVERS) $(PCI) mm/mm.o
+system.o: boot/header.o init/main.o kernel/kernel.o $(CHR_DRIVERS)  $(BLK_DRIVERS) $(PCI) mm/mm.o fs/fs.o
 	@ld -m elf_i386 boot/header.o init/main.o kernel/kernel.o \
-		$(CHR_DRIVERS) $(BLK_DRIVERS) $(PCI) mm/mm.o --entry=_start -Ttext=0x100000  -o bin.o $(LDFLAGS)
+		$(CHR_DRIVERS) $(BLK_DRIVERS) $(PCI) mm/mm.o fs/fs.o --entry=_start -Ttext=0x100000  -o bin.o $(LDFLAGS)
 	@# ld -m emulation so nice :-?
 	@objcopy -S -O binary  -j .got -j .data  -j .text -j .rodata -j .bss bin.o system.o
 boot/header.o:boot/header.s
@@ -36,6 +35,8 @@ $(PCI):
 	@(cd kernel/pci;make)
 mm/mm.o: 
 	@(cd mm/;make);
+fs/fs.o:
+	@(cd fs/;make);
 clean:
 	-@rm -rf *.o *.lst
 	@(cd boot;make clean)
@@ -44,6 +45,7 @@ clean:
 	@(cd kernel/blk_drv/;make clean)
 	@(cd kernel/pci/;make clean)
 	@(cd mm/;make clean)
+	@(cd fs/;make clean)
 	@(cd init ;make clean)
 dep:
 	-@(cd kernel;make dep)
@@ -51,4 +53,5 @@ dep:
 	-@(cd kernel/blk_drv/;make dep)
 	-@(cd kernel/pci/;make dep)
 	-@(cd mm/;make dep)
+	-@(cd fs/;make dep)
 	-@(cd init ;make dep)

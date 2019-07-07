@@ -6,8 +6,10 @@
 extern "C" {
 #endif
 void printk(const char * fmt , ...);
-void mmemcpy( void * dst, void * src ,uint len);
+void mmemcpy(void * dst, void * src ,uint len);
 void print_mem(void *, uint);
+uint strlen(const char * str);
+uint strcmp(const char * first , const char * second);
 #ifdef __cplusplus
 }
 #endif

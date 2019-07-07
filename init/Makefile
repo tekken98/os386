@@ -5,7 +5,7 @@ CPP = gcc -E -nostdinc  -I../include
 
 main.o:main.c
 	echo $(INCLUDE)
-	@gcc -m32 -c $< -o $@  $(CFLAGS) $(INCLUDE)
+	@gcc -m32 -c $< -o $@  -nostdinc $(CFLAGS) $(INCLUDE)
 clean:
 	-@rm -rf *.o
 dep:
