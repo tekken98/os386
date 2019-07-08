@@ -79,8 +79,11 @@ void add_entry(const char * pathname,struct inode_struct * ind){
     dir = (struct dir_entry*)p;
     int i = 0;
     for (i =0;i < 1024 / 32;i++){
-        if (dir[i].name[0] == 0x0)
+        if (dir[i].name[0] == 0x0){
+            for (int j = 0;j < 32;j++)
+                dir[i].name[j] = 0x0;
             break;
+        }
     }
     //printk("i is %d \n",i);
     mmemcpy(&(dir+i)->name,(void*)pathname,strlen(pathname));
