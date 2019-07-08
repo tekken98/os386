@@ -26,5 +26,7 @@ void print_super_info(struct super_block * p );
 uint find_first_zero(u32 * buff, u32 size);
 uint set_bit(uint index,u32 * data);
 int sys_mkdir(const char * pathname);
+int sys_rmdir(const char * pathname);
+int sys_ls();
 #endif
 

@@ -50,7 +50,7 @@ struct inode_struct *  new_inode(){
     return p;
 }
 void rm_inode(uint inode){
-    set_bit(inode,(u32*)g_super.inode_bitmap);
+    clear_bit(inode,(u32*)g_super.inode_bitmap);
 }
 uint new_block(){
     struct super_block * sb = &g_super.sb;
@@ -68,7 +68,7 @@ void rm_block(uint inode){
     uint blocknr;
     for (int i = 0;i<7;i++){
         if ((blocknr = dir->block_index[i]) != 0)
-            set_bit(blocknr,(u32*)g_super.data_bitmap);
+            clear_bit(blocknr - sb->data_block_begin,(u32*)g_super.data_bitmap);
     }
 }
 void add_entry(const char * pathname,struct inode_struct * ind){
@@ -135,4 +135,19 @@ int sys_rmdir(const char * pathname){
         return 1;
     rm_entry(pathname,inode);
     return 0;
+}
+int sys_ls(){
+    struct super_block * sb = &g_super.sb;
+    struct dir_entry * dir;
+    uchar * p =  (uchar*) get_free_page();
+    bread(sb->data_block_begin * 2, 2,(u32)p);
+    dir = (struct dir_entry*)p;
+    int i;
+    for (i =0;i < 1024 / 32;i++){
+        if (dir[i].name[0] != 0x0)
+            printk("%s ",dir[i].name);
+        }
+    printk("\n");
+    free_page(p);
+    return -1;
 }

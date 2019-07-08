@@ -50,6 +50,10 @@ void run_command(char * command){
     }else if (strcmp(argv[0],"mem") == 0){
         printk("run mem \n");
         print_mem();
+    }else if (strcmp(argv[0],"rmdir") ==0){
+        sys_rmdir(argv[1]);
+    }else if (strcmp(argv[0],"ls") == 0){
+        sys_ls();
     }
     printk(">");
 }
