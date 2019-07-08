@@ -17,7 +17,7 @@ void do_tty_interrupt(uint a);
 void backspace();
 
 void clear(){
-    uint count = VIDEOWIDTH * VIDEOHEIGHT ;
+    uint count = VIDEOWIDTH * (VIDEOHEIGHT+1) ;
     for (uint i = 0; i < count;i++){
         *((uchar*)VIDEOADDR+i*2) = 0x0;
         *((uchar*)VIDEOADDR+i*2+1) = 15;
@@ -47,6 +47,9 @@ void do_tty_interrupt(uint a){
     //printk("tty_interrupt\n");
     tty_put_char((uchar)a);
     wake_up(&tty_task);
+}
+void pause(){
+    tty_get_char();
 }
 int getPos(){
        return current_row * VIDEOWIDTH * 2 + current_col * 2 + VIDEOADDR;
@@ -81,7 +84,6 @@ void writeScreen(const char * begin, int len ){
        if (current_row > VIDEOHEIGHT){
            scrollup();
            current_row--;
-           //current_col = 0;
        }
        int pos = getPos();
        asm( 
@@ -95,6 +97,10 @@ void writeScreen(const char * begin, int len ){
                ::"S"(begin),"D"(pos),"c"(len) );
        current_row += (len + current_col)  / VIDEOWIDTH;
        current_col = (len + current_col) % VIDEOWIDTH;;
+       if (current_row > VIDEOHEIGHT){
+           scrollup();
+           current_row--;
+       }
        setCursor();
 }
 void backspace(){
@@ -129,4 +135,5 @@ void setCursor(void){
 }
 void scrollup(void){
     asm("rep movsl\t\n"::"S"(VIDEOADDR + VIDEOWIDTH * 2),"D"(VIDEOADDR),"c"(VIDEOWIDTH * (current_row)/2));
+    asm("rep stosl\t\n"::"a"(0),"D"(VIDEOADDR + VIDEOWIDTH * 24 * 2),"c"(VIDEOWIDTH /2));
 }

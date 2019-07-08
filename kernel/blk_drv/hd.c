@@ -93,7 +93,7 @@ void read_intr(void){
 void write_intr(void){
     outb(0x0,0xd000);
     int r = inb(HD_STATUS);
-    printk("hd write %08b \n",r);
+    //printk("hd write %08b \n",r);
     /*
     for (int i = 0;i < 512;i++){
        hd_buff[i] = 0x78;
@@ -238,6 +238,7 @@ void ide_read_sectors(u32 beg_sect,u32 sects ,u32 addr){
     hd_out(&cmd);
     outb(0x9,dma_base); 
     sleep_on(&waiting);
+    kfree(table);
     //u8 r = inb(dma_base + 2);
     //printk("%08b\n",r);
 }
@@ -264,6 +265,7 @@ void ide_write_sectors(u32 beg_sect,u32 sects ,u32 addr){
     hd_out(&cmd);
     outb(IDE_DMA_WRITE_START,dma_base); 
     sleep_on(&waiting);
+    kfree(table);
     //u8 r = inb(dma_base + 2);
     //printk("%08b\n",r);
 }

@@ -22,6 +22,7 @@ void free_pages(void* addr,uint nr);
 void * new_mem_page(uint);
 void * kmalloc(uint size);
 void kfree(void *);
+void print_mem();
 //void print_mem_page(struct mem_page*);
 #ifdef __cplusplus
 }

@@ -4,6 +4,7 @@
 #include "mm.h"
 static Memory memory;
 struct mem_page * free_mem_page = 0;
+
 void * new_mem_page(uint size){
     void *  page = get_free_page();
     struct mem_page * p = (struct mem_page*) page;
@@ -15,13 +16,16 @@ void * new_mem_page(uint size){
     p->count = count;
     return page;
 }
+
 void print_mem_page(mem_page* p){
     printk("size:%x,free:%x,next:%x,count:%d\n",p->size,p->free,p->next,p->count);
     ushort * ps = (ushort*) (p + 1);
     for (uint i = 0;i < p->count;i++)
     {
         ushort d = *(ps+i);
-        printk("[%x]=%x ",i,d);
+        if ( i > 0 && i % 6 == 0)
+            printk("\n");
+        printk("[%02x]=%04x ",i,d);
     }
 
 }
@@ -53,9 +57,9 @@ con:
             *(pre->free + i) = 0xffff;
             //print_mem_page(pre);
             //printk("mem begin %x \n",(uint)(pre->free + pre->count));
-            return (pre->free + pre->count) + pre->size * (i + 1 - count);
+             uint pp = (uint)(pre->free + pre->count) + pre->size * (i + 1 - count);
+            return (void*)pp; 
         }
-
     }
         struct mem_page * n  = (mem_page*)new_mem_page(32);
         n->next = free_mem_page;
@@ -63,7 +67,19 @@ con:
         goto con;
     return 0;
 }
+void print_mem(){
+    struct mem_page * pre = free_mem_page;
+    if (free_mem_page == 0){
+        printk(" no call kalloc yet !\n");
+        return ;
+    }
+    for(; pre != 0;pre = pre->next){
+        print_mem_page(pre);
+    }
+    printk("\n");
+}
 void kfree( void * p){
+
     if (free_mem_page == 0){
         return ;
     }
@@ -83,7 +99,6 @@ void kfree( void * p){
             *begin = 0;
         }
     }
-
 }
 uint get_mem_pages(){
     return sizeof(memory);

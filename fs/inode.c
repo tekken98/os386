@@ -25,7 +25,6 @@ uint find_first_zero(u32 * data,u32 size){
        if (((ret >> i ) & 0x1) == 0x0)
            break;
     }
-    printk("%d ", ((u32)(p - data))*32 + i);
     return ((u32)(p - data))*32 + i;
 }
 uint set_bit(uint index,u32 * data){
@@ -43,34 +42,47 @@ uint clear_bit(uint index,u32 *data){
     return ret;
 }
 struct inode_struct *  new_inode(){
-    struct super_block * sb = g_super.sb;
+    struct super_block * sb = &g_super.sb;
     struct inode_struct *p = (struct inode_struct *)kmalloc(sizeof(struct inode_struct));
+    //printk("kmalloc %p \n",p);
     p->inums = find_first_zero((u32*)g_super.inode_bitmap,sb->inode_block_nr * 1024 / 4);
     set_bit(p->inums,(u32*)g_super.inode_bitmap);
-    printk("p->inums %d \n",p->inums);
     return p;
 }
+void rm_inode(uint inode){
+    set_bit(inode,(u32*)g_super.inode_bitmap);
+}
 uint new_block(){
-    struct super_block * sb = g_super.sb;
+    struct super_block * sb = &g_super.sb;
     uint ret = find_first_zero((u32*)g_super.data_bitmap,sb->data_bitmap_nr * 1024 /4);
     set_bit(ret,(u32*)g_super.data_bitmap);
-    printk("data bitmap %d \n",ret);
-    return ret;
+    return ret + sb->data_block_begin;
+}
+void rm_block(uint inode){
+    struct super_block * sb = &g_super.sb;
+    struct inode_struct * dir;
+    uchar * p = get_free_page();
+    bread(sb->inode_block_begin * 2, 2,(u32)p);
+    dir = (struct inode_struct *) p;
+    dir += inode;
+    uint blocknr;
+    for (int i = 0;i<7;i++){
+        if ((blocknr = dir->block_index[i]) != 0)
+            set_bit(blocknr,(u32*)g_super.data_bitmap);
+    }
 }
 void add_entry(const char * pathname,struct inode_struct * ind){
-    struct super_block * sb = g_super.sb;
+    struct super_block * sb = &g_super.sb;
     struct dir_entry * dir;
     uchar * p =  (uchar*) get_free_page();
-    printk(" data_block_begin %d \n",sb->data_block_begin);
     bread(sb->data_block_begin * 2, 2,(u32)p);
     dir = (struct dir_entry*)p;
-    int i;
+    int i = 0;
     for (i =0;i < 1024 / 32;i++){
         if (dir[i].name[0] == 0x0)
             break;
     }
-    printk("dir[i] is %d \n",i);
-    printk("%d %s \n",strlen(pathname),pathname);
+    //printk("i is %d \n",i);
     mmemcpy(&(dir+i)->name,(void*)pathname,strlen(pathname));
     (dir+i)->inode = ind->inums;
     bwrite(sb->data_block_begin * 2, 2,(u32)p);
@@ -79,11 +91,10 @@ void add_entry(const char * pathname,struct inode_struct * ind){
     mmemcpy((void*)((struct inode_struct *)p + ind->inums),(void*)ind,sizeof(struct inode_struct));
     bwrite(sb->inode_block_begin * 2, 2,(u32)p);
     free_page(p);
-    kfree(ind);
     write_super_all();
 }
-uint find_entry(const char * pathname){
-    struct super_block * sb = g_super.sb;
+int find_entry(const char * pathname, int remove){
+    struct super_block * sb = &g_super.sb;
     struct dir_entry * dir;
     uchar * p =  (uchar*) get_free_page();
     bread(sb->data_block_begin * 2, 2,(u32)p);
@@ -92,19 +103,36 @@ uint find_entry(const char * pathname){
     for (i =0;i < 1024 / 32;i++){
         if (dir[i].name[0] != 0x0)
             if (!strcmp(dir[i].name,pathname)){
+                    if (remove == 1){
+                        dir[i].name[0] = 0x0;
+                        bwrite(sb->data_block_begin * 2, 2,(u32)p);
+                    }
                     free_page(p);
-                    return 1;
+                    return dir[i].inode;
             }
     }
     free_page(p);
-    return 0;
+    return -1;
 }
 int sys_mkdir(const char * pathname){
-    if (find_entry(pathname))
+    if (find_entry(pathname,0) != -1)
         return 1;
     struct inode_struct *inode;
     inode = new_inode();
     inode->block_index[0] = new_block();
     add_entry(pathname,inode);
+    kfree(inode);
+    return 0;
+}
+void rm_entry(const char * pathname, uint inode){
+    rm_block(inode);
+    rm_inode(inode);
+    write_super_all();
+}
+int sys_rmdir(const char * pathname){
+    uint inode;
+    if ((inode = find_entry(pathname,1)) == -1)
+        return 1;
+    rm_entry(pathname,inode);
     return 0;
 }

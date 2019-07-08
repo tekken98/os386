@@ -14,7 +14,7 @@ struct super_block {
     u32 data_block_nr;
 };
 struct super_all {
-    struct super_block * sb;
+    struct super_block sb;
     uchar * inode_bitmap;
     uchar * data_bitmap;
 }; 

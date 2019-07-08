@@ -16,14 +16,15 @@ void format(void){
     p->data_block_nr = 8192;
     bwrite(1 * 2 ,2,(ulong)p);
     free_page(p);
+    read_super_all();
 }
 void read_super_all(){
     struct super_block *sb;
-    sb = g_super.sb = (struct super_block*)kmalloc(sizeof(struct super_block));
+    sb = &g_super.sb; 
     g_super.inode_bitmap = (uchar*)get_free_page();
     g_super.data_bitmap = (uchar*)get_free_page();
     read_super(sb);
-    print_super_info(sb);
+    //print_super_info(sb);
     bread(sb->inode_bitmap_begin * 2 , sb->inode_bitmap_nr * 2,(ulong)g_super.inode_bitmap);
     bread(sb->data_bitmap_begin * 2, sb->data_bitmap_nr * 2, (ulong)g_super.data_bitmap);
 }
@@ -34,7 +35,7 @@ void read_super(struct super_block * super){
     free_page(p);
 }
 void write_super_all(){
-    struct super_block *sb = g_super.sb;
+    struct super_block *sb = &g_super.sb;
     bwrite(sb->inode_bitmap_begin * 2 , sb->inode_bitmap_nr * 2,(ulong)g_super.inode_bitmap);
     bwrite(sb->data_bitmap_begin * 2, sb->data_bitmap_nr * 2, (ulong)g_super.data_bitmap);
 }

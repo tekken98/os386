@@ -169,16 +169,3 @@ void printk(const char * str,...){
     va_end(va);
     writeWithReturn(buff);
 }
-void print_mem( void * p,uint size){
-    int i = 0;
-    while (size--){
-            printk("%02x",*((uchar*)p + i++));
-            if (i % 16 == 0){
-                printk("\n");
-            }else
-                printk(" ");
-    }
-    if (size % 16 > 0){
-        printk("\n");
-    }
-}

@@ -40,16 +40,18 @@ void run_command(char * command){
             command++;
     }
     if (strcmp(argv[0],"format") == 0){
-        printk("\n run format\n");
+        printk("run format \n");
         format();
     }else if (strcmp(argv[0],"mkdir") == 0){
-        printk("\n run mkdir \n");
+        printk("run mkdir \n");
         sys_mkdir(argv[1]);
     }else if (strcmp(argv[0],"cls") == 0){
         clear();
+    }else if (strcmp(argv[0],"mem") == 0){
+        printk("run mem \n");
+        print_mem();
     }
-
-    printk("\n>");
+    printk(">");
 }
 void init(){
     char console_buff[256];
@@ -65,6 +67,7 @@ void init(){
         if (c == 0x0)
             continue;
         if (c == 0xd){
+            printk("\n");
             console_buff[i] = 0x0;
             run_command(console_buff);
             i = 0;
