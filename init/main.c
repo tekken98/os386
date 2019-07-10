@@ -58,10 +58,9 @@ void run_command(char * command){
     printk(">");
 }
 void init(){
-    char console_buff[256];
-    int i = 0;
+   char console_buff[256];
+   int i = 0;
    uchar c;
-   //format();
    read_super_all();
    printk("\n>");
    while(1){
@@ -116,7 +115,7 @@ void mmain()
 {
     uint mem = (uint)get_free_page() + 4096;
     clear();
-    printk("This in os386 Mem is %dM \n", mem / (1024 * 1024));
+    printk("This in os386 Mem is %dM", mem / (1024 * 1024));
     trap_init();
     //mmemcpy(current,&init_task, sizeof(struct task_struct));
     for (int i = 0; i< 10;i++)

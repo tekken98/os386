@@ -50,6 +50,7 @@ void do_tty_interrupt(uint a){
 }
 void pause(){
     tty_get_char();
+    tty_get_char();
 }
 int getPos(){
        return current_row * VIDEOWIDTH * 2 + current_col * 2 + VIDEOADDR;

@@ -92,7 +92,7 @@ void read_intr(void){
 }
 void write_intr(void){
     outb(0x0,0xd000);
-    int r = inb(HD_STATUS);
+    //int r = inb(HD_STATUS);
     //printk("hd write %08b \n",r);
     /*
     for (int i = 0;i < 512;i++){
@@ -101,7 +101,7 @@ void write_intr(void){
     if ((r & 0x80) == 0x80)
         port_write(HD_DATA,&hd_buff,256);
         */
-    r = inb(HD_STATUS);
+    //r = inb(HD_STATUS);
     wake_up(&waiting);
 }
 void unexpected_hd_interrupt(void){
